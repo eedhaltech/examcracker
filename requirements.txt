@@ -9,4 +9,3 @@ gunicorn==22.0.0
 django-redis==5.4.0
 python-decouple==3.8
 razorpay==1.0.0
-python-3.12.10
