@@ -3,9 +3,10 @@ psycopg2-binary==2.9.9
 redis==5.0.4
 celery==5.3.6
 django-allauth==0.61.1
-Pillow==10.3.0
+Pillow>=11.2.1
 whitenoise==6.6.0
 gunicorn==22.0.0
 django-redis==5.4.0
 python-decouple==3.8
 razorpay==1.0.0
+python-3.12.10
