@@ -1,5 +1,5 @@
 Django==4.2.13
-psycopg2-binary==2.9.9
+psycopg[binary]
 redis==5.0.4
 celery==5.3.6
 django-allauth==0.61.1
