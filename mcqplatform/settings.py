@@ -156,6 +156,10 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@mcqplatform.com')
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://examcracker-0u2g.onrender.com",
+]
+
 # Celery
 # CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
 # CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
