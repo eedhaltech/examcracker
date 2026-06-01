@@ -1,0 +1,27 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Grant Membership{% endblock %}
+{% block page_title %}Grant Membership{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:480px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>User Email *</label>
+      <input type="email" name="email" class="panel-input" required autofocus placeholder="user@example.com">
+    </div>
+    <div class="form-group">
+      <label>Plan</label>
+      <select name="plan" class="panel-select">
+        {% for key, label in plan_choices %}
+        <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">⭐ Grant Membership</button>
+      <a href="{% url 'panel_memberships' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

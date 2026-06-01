@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% load static ad_tags %}
+{% block title %}MCQ Platform — Practice Topic-wise Questions{% endblock %}
+
+{% block course_nav %}
+<nav class="course-nav" id="course-nav" aria-label="Syllabuses">
+  <div class="container course-nav-inner">
+    <span class="course-nav-label">Syllabus:</span>
+    {% for syllabus in syllabuses %}
+    <button type="button" class="course-nav-tab"
+        data-syllabus-id="{{ syllabus.id }}"
+        data-syllabus-name="{{ syllabus.name }}">
+      {{ syllabus.name }}
+    </button>
+    {% endfor %}
+  </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <section class="hero">
+    <h1>Practice. Improve. <span>Succeed.</span></h1>
+    <p>Topic-wise MCQs with instant evaluation and performance tracking. Built for serious exam prep.</p>
+    <div class="hero-actions">
+      {% if request.paywalls_active and not request.is_member %}
+        <a href="{% url 'subscribe' %}" class="btn-primary btn-lg">⭐ Unlock Full Access — ₹10</a>
+      {% endif %}
+      <a href="#courses" class="btn-secondary btn-lg">Browse Courses</a>
+    </div>
+  </section>
+
+  <!-- Quiz bar -->
+  <div class="filter-bar card" id="quiz-bar">
+    <h2>Start a Quiz</h2>
+    <p class="filter-subtitle">Pick a syllabus → course → topic → sub-topic to begin.</p>
+    <div class="filter-row">
+      <div class="filter-group">
+        <label for="syllabus-select">Syllabus</label>
+        <select id="syllabus-select" name="syllabus_id">
+          <option value="">Select syllabus…</option>
+          {% for syllabus in syllabuses %}
+          <option value="{{ syllabus.id }}" data-name="{{ syllabus.name }}">{{ syllabus.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="course-select">Course</label>
+        <select id="course-select" name="course_id" disabled>
+          <option value="">Select course…</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="topic-select">Topic</label>
+        <select id="topic-select" name="topic_id" disabled>
+          <option value="">Select topic…</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="subtopic-select">Sub-topic</label>
+        <select id="subtopic-select" name="subtopic_id" disabled>
+          <option value="">Select sub-topic…</option>
+        </select>
+      </div>
+      <div class="filter-group" style="justify-content:flex-end;">
+        <label>&nbsp;</label>
+        <button type="button" class="btn-primary" id="start-btn" disabled onclick="startQuiz()">
+          Start Quiz →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic quiz panel -->
+  <div id="quiz-panel" class="quiz-panel" style="display:none;" aria-live="polite">
+    <div class="card quiz-panel-card">
+      <div id="qp-topics-section" style="display:none;">
+        <div class="qp-section-header">
+          <div class="qp-section-left">
+            <span class="qp-section-label" id="qp-topics-label">Topics</span>
+            <span class="qp-section-hint">Click a topic to see its sub-topics</span>
+          </div>
+          <div class="qp-difficulty-row">
+            <span class="qp-diff-label">Difficulty:</span>
+            <button class="qp-diff-btn qp-diff-btn--active" data-diff="all"    data-for="topic">All</button>
+            <button class="qp-diff-btn qp-diff-btn--easy"   data-diff="easy"   data-for="topic">Easy</button>
+            <button class="qp-diff-btn qp-diff-btn--medium" data-diff="medium" data-for="topic">Medium</button>
+            <button class="qp-diff-btn qp-diff-btn--hard"   data-diff="hard"   data-for="topic">Hard</button>
+          </div>
+        </div>
+        <div class="courses-grid" id="qp-topics-grid"></div>
+      </div>
+      <div id="qp-subtopics-section" style="display:none;">
+        <div class="qp-section-header">
+          <div class="qp-section-left">
+            <span class="qp-section-label" id="qp-subtopics-label">Sub-topics</span>
+            <span class="qp-section-hint">Click a sub-topic to select it</span>
+          </div>
+          <div class="qp-difficulty-row">
+            <span class="qp-diff-label">Difficulty:</span>
+            <button class="qp-diff-btn qp-diff-btn--active" data-diff="all"    data-for="subtopic">All</button>
+            <button class="qp-diff-btn qp-diff-btn--easy"   data-diff="easy"   data-for="subtopic">Easy</button>
+            <button class="qp-diff-btn qp-diff-btn--medium" data-diff="medium" data-for="subtopic">Medium</button>
+            <button class="qp-diff-btn qp-diff-btn--hard"   data-diff="hard"   data-for="subtopic">Hard</button>
+          </div>
+        </div>
+        <div class="courses-grid" id="qp-subtopics-grid"></div>
+      </div>
+      <div id="qp-spinner" style="display:none;" class="browse-spinner-wrap">
+        <span class="browse-spin"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Browse Courses grouped by syllabus -->
+  <section class="courses-section" id="courses">
+    <div class="browse-syllabus-filter">
+      <button class="browse-syl-pill browse-syl-pill--active" data-syl-id="">All</button>
+      {% for syllabus in syllabuses %}
+      <button class="browse-syl-pill" data-syl-id="{{ syllabus.id }}">{{ syllabus.name }}</button>
+      {% endfor %}
+    </div>
+
+    <div id="browse-container">
+      <div id="browse-courses-view">
+        {% if syllabuses %}
+          {% for syllabus in syllabuses %}
+          <div class="browse-syllabus-group" data-syl-id="{{ syllabus.id }}">
+            <h2 class="browse-heading">{{ syllabus.name }}</h2>
+            {% with syl_courses=syllabus.courses.all %}
+            {% if syl_courses %}
+            <div class="courses-grid">
+              {% for course in syl_courses %}
+              <button type="button" class="course-card"
+                  data-course-id="{{ course.id }}"
+                  data-course-name="{{ course.name }}"
+                  data-syllabus-id="{{ syllabus.id }}"
+                  data-syllabus-name="{{ syllabus.name }}"
+                  data-action="browse-course-click">
+                {% if course.icon %}<img src="{{ course.icon.url }}" alt="{{ course.name }}" class="course-icon">
+                {% else %}<div class="course-icon-placeholder">📚</div>{% endif %}
+                <h3>{{ course.name }}</h3>
+                <span class="topic-count">{{ course.topics.count }} topic{{ course.topics.count|pluralize }}</span>
+              </button>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="browse-no-courses">
+              <span class="browse-no-courses-icon">📭</span>
+              <p>Sorry, no courses available in <strong>{{ syllabus.name }}</strong> yet.</p>
+            </div>
+            {% endif %}
+            {% endwith %}
+          </div>
+          {% endfor %}
+        {% else %}
+          <h2 class="browse-heading">Browse Courses</h2>
+          <div class="courses-grid">
+            {% for course in courses %}
+            <button type="button" class="course-card"
+                data-course-id="{{ course.id }}"
+                data-course-name="{{ course.name }}"
+                data-action="browse-course-click">
+              {% if course.icon %}<img src="{{ course.icon.url }}" alt="{{ course.name }}" class="course-icon">
+              {% else %}<div class="course-icon-placeholder">📚</div>{% endif %}
+              <h3>{{ course.name }}</h3>
+              <span class="topic-count">{{ course.topics.count }} topic{{ course.topics.count|pluralize }}</span>
+            </button>
+            {% empty %}<p class="empty-state">No courses yet.</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      <div id="browse-drill-view" style="display:none;"></div>
+      <div id="browse-spinner" style="display:none;" class="browse-spinner-wrap">
+        <span class="browse-spin"></span>
+      </div>
+    </div>
+  </section>
+
+  {% if request.paywalls_active and not request.is_member %}
+  <div style="margin-top:1.5rem;">{% render_ad "closing" %}</div>
+  <section class="upsell-banner card">
+    <div class="upsell-inner">
+      <div class="upsell-text">
+        <h3>🔒 Unlock the full platform</h3>
+        <p>Free users get 5 attempts/day and levels 1–2 only. Members get unlimited access, all levels, timer, and full analytics.</p>
+      </div>
+      <a href="{% url 'subscribe' %}" class="btn-primary">View Plans — from ₹10</a>
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+
+<!-- Syllabus picker modal -->
+<div id="syllabus-modal" class="syl-modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+  <div class="syl-modal-box">
+    <button class="syl-modal-close" id="syl-modal-close" aria-label="Close">×</button>
+    <h3 class="syl-modal-title">Choose Your Syllabus</h3>
+    <p class="syl-modal-course" id="syl-modal-course-name"></p>
+    <p class="syl-modal-hint">Select the syllabus you want to study this course under:</p>
+    <div class="syl-modal-options" id="syl-modal-options"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function apiFetch(url){return fetch(url,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();});}
+
+var state={syllabusId:null,syllabusName:'',courseId:null,courseName:'',topicId:null,topicName:'',subtopicId:null,subtopicSlug:null,topicDiff:'all',subtopicDiff:'all'};
+
+var syllabusSel=document.getElementById('syllabus-select');
+var courseSel=document.getElementById('course-select');
+var topicSel=document.getElementById('topic-select');
+var subtopicSel=document.getElementById('subtopic-select');
+var startBtn=document.getElementById('start-btn');
+var quizPanel=document.getElementById('quiz-panel');
+var qpTopicsSec=document.getElementById('qp-topics-section');
+var qpTopicsLabel=document.getElementById('qp-topics-label');
+var qpTopicsGrid=document.getElementById('qp-topics-grid');
+var qpSubSec=document.getElementById('qp-subtopics-section');
+var qpSubLabel=document.getElementById('qp-subtopics-label');
+var qpSubGrid=document.getElementById('qp-subtopics-grid');
+var qpSpinner=document.getElementById('qp-spinner');
+
+function updateStartBtn(){startBtn.disabled=!(state.syllabusId&&state.courseId&&state.topicId!==null&&state.subtopicId!==null);}
+function startQuiz(){
+  if(!state.courseId)return;
+  if(state.topicId==='all'){window.location.href='/quiz/start-scoped/?scope=course&id='+state.courseId+'&difficulty='+state.topicDiff;}
+  else if(state.subtopicId==='all'){window.location.href='/quiz/start-scoped/?scope=topic&id='+state.topicId+'&difficulty='+state.subtopicDiff;}
+  else if(state.subtopicSlug){window.location.href='/quiz/start/'+state.subtopicSlug+'/';}
+}
+
+function showPanel(){quizPanel.style.display='block';quizPanel.classList.remove('quiz-panel--visible');requestAnimationFrame(function(){requestAnimationFrame(function(){quizPanel.classList.add('quiz-panel--visible');});});}
+function hidePanel(){quizPanel.classList.remove('quiz-panel--visible');setTimeout(function(){quizPanel.style.display='none';},220);}
+function setQpSpinner(on){qpSpinner.style.display=on?'flex':'none';}
+
+function setDiffActive(forGroup,diff){document.querySelectorAll('.qp-diff-btn[data-for="'+forGroup+'"]').forEach(function(b){b.classList.toggle('qp-diff-btn--active',b.dataset.diff===diff);});}
+
+function renderTopicCards(courseName,topics){
+  qpTopicsLabel.textContent=courseName+' — '+topics.length+' topic'+(topics.length!==1?'s':'');
+  var allCard='<button type="button" class="course-card qp-topic-card qp-all-card" data-topic-id="all" data-topic-name="All Topics"><div class="course-icon-placeholder">📚</div><h3>All Topics</h3><span class="topic-count">Entire course</span></button>';
+  var cards=topics.map(function(t){return '<button type="button" class="course-card qp-topic-card" data-topic-id="'+t.id+'" data-topic-name="'+escHtml(t.name)+'" data-topic-slug="'+escHtml(t.slug)+'"><div class="course-icon-placeholder">📖</div><h3>'+escHtml(t.name)+'</h3><span class="topic-count">'+t.subtopic_count+' sub-topic'+(t.subtopic_count!==1?'s':'')+'</span></button>';});
+  qpTopicsGrid.innerHTML=allCard+cards.join('');
+  qpTopicsSec.style.display='block';
+}
+
+function renderSubtopicCards(topicName,subtopics){
+  qpSubLabel.textContent=topicName+' — '+subtopics.length+' sub-topic'+(subtopics.length!==1?'s':'');
+  var allCard='<button type="button" class="course-card qp-subtopic-card qp-all-card" data-subtopic-id="all" data-subtopic-name="All Sub-topics" data-subtopic-slug=""><div class="course-icon-placeholder">📖</div><h3>All Sub-topics</h3><span class="topic-count">Entire topic</span></button>';
+  var cards=subtopics.map(function(s){return '<button type="button" class="course-card qp-subtopic-card" data-subtopic-id="'+s.id+'" data-subtopic-name="'+escHtml(s.name)+'" data-subtopic-slug="'+escHtml(s.slug)+'"><div class="course-icon-placeholder">📝</div><h3>'+escHtml(s.name)+'</h3><span class="topic-count">'+s.question_count+' question'+(s.question_count!==1?'s':'')+'</span></button>';});
+  qpSubGrid.innerHTML=allCard+cards.join('');
+  qpSubSec.style.display='block';
+}
+
+function populateSelect(sel,items,placeholder,slugKey,addAll){
+  sel.innerHTML='<option value="">'+placeholder+'</option>';
+  if(addAll&&items.length>0){var o=document.createElement('option');o.value='all';o.textContent=addAll;sel.appendChild(o);}
+  items.forEach(function(item){var o=document.createElement('option');o.value=item.id;o.textContent=item.name;if(slugKey&&item[slugKey])o.dataset.slug=item[slugKey];sel.appendChild(o);});
+  sel.disabled=items.length===0;
+}
+function setSelectValue(sel,id){for(var i=0;i<sel.options.length;i++){if(String(sel.options[i].value)===String(id)){sel.selectedIndex=i;return;}}}
+
+function resetFrom(level){
+  if(level<='course'){populateSelect(courseSel,[],'Select course…',null,null);courseSel.disabled=true;state.courseId=null;state.courseName='';}
+  if(level<='topic'){populateSelect(topicSel,[],'Select topic…',null,null);topicSel.disabled=true;state.topicId=null;state.topicName='';qpTopicsSec.style.display='none';}
+  if(level<='subtopic'){populateSelect(subtopicSel,[],'Select sub-topic…','slug',null);subtopicSel.disabled=true;state.subtopicId=null;state.subtopicSlug=null;qpSubSec.style.display='none';}
+}
+
+function loadSubtopics(topicId,topicName){
+  setQpSpinner(true);qpSubSec.style.display='none';qpTopicsSec.style.display='none';
+  apiFetch('/api/browse/subtopics/json/?topic_id='+topicId)
+    .then(function(data){setQpSpinner(false);renderSubtopicCards(topicName,data.subtopics);populateSelect(subtopicSel,data.subtopics,'Select sub-topic…','slug','All Sub-topics');subtopicSel.disabled=false;state.subtopicId=null;state.subtopicSlug=null;state.subtopicDiff='all';setDiffActive('subtopic','all');updateStartBtn();})
+    .catch(function(){setQpSpinner(false);qpSubGrid.innerHTML='<p class="qp-empty">Failed to load sub-topics.</p>';qpSubSec.style.display='block';});
+}
+
+// ── SYLLABUS dropdown ──
+syllabusSel.addEventListener('change',function(){
+  state.syllabusId=syllabusSel.value||null;
+  state.syllabusName=syllabusSel.options[syllabusSel.selectedIndex]?.dataset?.name||'';
+  resetFrom('course');state.topicDiff='all';state.subtopicDiff='all';
+  setDiffActive('topic','all');setDiffActive('subtopic','all');
+  updateStartBtn();hidePanel();
+  document.querySelectorAll('.course-nav-tab').forEach(function(t){t.classList.toggle('course-nav-tab--active',t.dataset.syllabusId===syllabusSel.value);});
+  if(!state.syllabusId)return;
+  apiFetch('/api/syllabus-courses/?syllabus_id='+state.syllabusId).then(function(data){populateSelect(courseSel,data.courses,'Select course…',null,null);courseSel.disabled=data.courses.length===0;});
+});
+
+// ── COURSE dropdown ──
+courseSel.addEventListener('change',function(){
+  state.courseId=courseSel.value||null;
+  state.courseName=courseSel.options[courseSel.selectedIndex]?.textContent||'';
+  resetFrom('topic');state.topicDiff='all';state.subtopicDiff='all';
+  setDiffActive('topic','all');setDiffActive('subtopic','all');updateStartBtn();
+  if(!state.courseId){hidePanel();return;}
+  showPanel();setQpSpinner(true);
+  apiFetch('/api/browse/topics/json/?course_id='+state.courseId)
+    .then(function(data){setQpSpinner(false);renderTopicCards(state.courseName,data.topics);populateSelect(topicSel,data.topics,'Select topic…',null,'All Topics');topicSel.disabled=false;})
+    .catch(function(){setQpSpinner(false);qpTopicsGrid.innerHTML='<p class="qp-empty">Failed to load topics.</p>';qpTopicsSec.style.display='block';});
+});
+
+// ── TOPIC dropdown ──
+topicSel.addEventListener('change',function(){
+  var topicId=topicSel.value,topicName=topicSel.options[topicSel.selectedIndex]?.textContent||'';
+  document.querySelectorAll('.qp-topic-card').forEach(function(c){c.classList.toggle('qp-card--active',c.dataset.topicId===topicId);});
+  state.topicId=topicId||null;state.topicName=topicName;state.subtopicId=null;state.subtopicSlug=null;
+  populateSelect(subtopicSel,[],'Select sub-topic…','slug',null);subtopicSel.disabled=true;qpSubSec.style.display='none';updateStartBtn();
+  if(!topicId){qpTopicsSec.style.display='block';return;}
+  if(topicId==='all'){state.subtopicId='all';qpTopicsSec.style.display='none';updateStartBtn();return;}
+  loadSubtopics(topicId,topicName);
+});
+
+// ── SUBTOPIC dropdown ──
+subtopicSel.addEventListener('change',function(){
+  var subId=subtopicSel.value,selOpt=subtopicSel.options[subtopicSel.selectedIndex];
+  state.subtopicId=subId||null;
+  state.subtopicSlug=(subId&&subId!=='all')?(selOpt?.dataset?.slug||null):null;
+  document.querySelectorAll('.qp-subtopic-card').forEach(function(c){c.classList.toggle('qp-card--active',c.dataset.subtopicId===subId);});
+  updateStartBtn();
+});
+
+// ── Difficulty pills ──
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.qp-diff-btn');if(!btn)return;
+  var diff=btn.dataset.diff,fg=btn.dataset.for;
+  if(fg==='topic'){state.topicDiff=diff;setDiffActive('topic',diff);}
+  if(fg==='subtopic'){state.subtopicDiff=diff;setDiffActive('subtopic',diff);}
+  updateStartBtn();
+});
+
+// ── Quiz panel card clicks ──
+quizPanel.addEventListener('click',function(e){
+  var tc=e.target.closest('.qp-topic-card');
+  if(tc){
+    var tid=tc.dataset.topicId,tn=tc.dataset.topicName;
+    document.querySelectorAll('.qp-topic-card').forEach(function(c){c.classList.remove('qp-card--active');});tc.classList.add('qp-card--active');
+    state.topicId=tid;state.topicName=tn;state.subtopicId=null;state.subtopicSlug=null;
+    if(tid==='all'){state.subtopicId='all';qpTopicsSec.style.display='none';qpSubSec.style.display='none';populateSelect(subtopicSel,[],'All sub-topics','slug',null);subtopicSel.disabled=true;setSelectValue(topicSel,'all');updateStartBtn();document.getElementById('quiz-bar').scrollIntoView({behavior:'smooth',block:'nearest'});}
+    else{setSelectValue(topicSel,tid);populateSelect(subtopicSel,[],'Select sub-topic…','slug',null);subtopicSel.disabled=true;qpSubSec.style.display='none';updateStartBtn();loadSubtopics(tid,tn);}
+    return;
+  }
+  var sc=e.target.closest('.qp-subtopic-card');
+  if(sc){
+    var sid=sc.dataset.subtopicId,ssl=sc.dataset.subtopicSlug;
+    document.querySelectorAll('.qp-subtopic-card').forEach(function(c){c.classList.remove('qp-card--active');});sc.classList.add('qp-card--active');
+    state.subtopicId=sid;state.subtopicSlug=ssl||null;
+    if(sid==='all'){setSelectValue(subtopicSel,'all');}
+    else{setSelectValue(subtopicSel,sid);var so=subtopicSel.options[subtopicSel.selectedIndex];if(so)so.dataset.slug=ssl;}
+    updateStartBtn();document.getElementById('quiz-bar').scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+});
+
+// ── Course nav bar syllabus tab clicks ──
+document.querySelectorAll('.course-nav-tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.course-nav-tab').forEach(function(t){t.classList.remove('course-nav-tab--active');});
+    tab.classList.add('course-nav-tab--active');
+    setSelectValue(syllabusSel,tab.dataset.syllabusId);
+    var so=syllabusSel.options[syllabusSel.selectedIndex];if(so)so.dataset.name=tab.dataset.syllabusName;
+    syllabusSel.dispatchEvent(new Event('change'));
+
+    // Also filter Browse section to show only this syllabus
+    filterBrowse(tab.dataset.syllabusId);
+
+    document.getElementById('quiz-bar').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+});
+
+// ── Browse syllabus filter ──
+function filterBrowse(sylId) {
+  // Update pill active state
+  document.querySelectorAll('.browse-syl-pill').forEach(function(p){
+    p.classList.toggle('browse-syl-pill--active', p.dataset.sylId === sylId);
+  });
+  // Show/hide groups
+  document.querySelectorAll('.browse-syllabus-group').forEach(function(g){
+    if (!sylId) {
+      // "All" — only show groups that have actual course cards (not just the empty message)
+      var hasCards = g.querySelectorAll('.course-card').length > 0;
+      g.style.display = hasCards ? 'block' : 'none';
+    } else {
+      g.style.display = (g.dataset.sylId === sylId) ? 'block' : 'none';
+    }
+  });
+}
+
+// On page load — hide empty syllabus groups by default
+filterBrowse('');
+
+document.querySelectorAll('.browse-syl-pill').forEach(function(pill){
+  pill.addEventListener('click',function(){
+    filterBrowse(pill.dataset.sylId);
+  });
+});
+
+// ── Browse course card click — syllabus picker modal ──
+var sylModal=document.getElementById('syllabus-modal');
+var sylModalCourseName=document.getElementById('syl-modal-course-name');
+var sylModalOptions=document.getElementById('syl-modal-options');
+var pendingCourseId=null,pendingCourseName=null;
+
+document.getElementById('syl-modal-close').addEventListener('click',function(){sylModal.style.display='none';});
+sylModal.addEventListener('click',function(e){if(e.target===sylModal)sylModal.style.display='none';});
+
+function selectCourseWithSyllabus(courseId,courseName,syllabusId,syllabusName){
+  // Set syllabus dropdown
+  setSelectValue(syllabusSel,syllabusId);
+  var so=syllabusSel.options[syllabusSel.selectedIndex];if(so)so.dataset.name=syllabusName;
+  state.syllabusId=syllabusId;state.syllabusName=syllabusName;
+  // Sync nav tab
+  document.querySelectorAll('.course-nav-tab').forEach(function(t){t.classList.toggle('course-nav-tab--active',t.dataset.syllabusId===String(syllabusId));});
+  // Load courses for this syllabus, then select the course
+  apiFetch('/api/syllabus-courses/?syllabus_id='+syllabusId).then(function(data){
+    populateSelect(courseSel,data.courses,'Select course…',null,null);courseSel.disabled=false;
+    setSelectValue(courseSel,courseId);
+    state.courseId=courseId;state.courseName=courseName;
+    resetFrom('topic');updateStartBtn();
+    showPanel();setQpSpinner(true);
+    apiFetch('/api/browse/topics/json/?course_id='+courseId)
+      .then(function(d){setQpSpinner(false);renderTopicCards(courseName,d.topics);populateSelect(topicSel,d.topics,'Select topic…',null,'All Topics');topicSel.disabled=false;})
+      .catch(function(){setQpSpinner(false);});
+    document.getElementById('quiz-bar').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+document.addEventListener('click',function(e){
+  var card=e.target.closest('[data-action="browse-course-click"]');
+  if(!card)return;
+  var courseId=card.dataset.courseId;
+  var courseName=card.dataset.courseName||'';
+  var syllabusId=card.dataset.syllabusId||'';
+  var syllabusName=card.dataset.syllabusName||'';
+
+  // If course has no syllabus, just load it directly
+  if(!syllabusId){
+    state.syllabusId=null;state.syllabusName='';
+    syllabusSel.selectedIndex=0;
+    populateSelect(courseSel,[{id:courseId,name:courseName}],'Select course…',null,null);
+    courseSel.disabled=false;setSelectValue(courseSel,courseId);
+    state.courseId=courseId;state.courseName=courseName;
+    resetFrom('topic');updateStartBtn();
+    showPanel();setQpSpinner(true);
+    apiFetch('/api/browse/topics/json/?course_id='+courseId)
+      .then(function(d){setQpSpinner(false);renderTopicCards(courseName,d.topics);populateSelect(topicSel,d.topics,'Select topic…',null,'All Topics');topicSel.disabled=false;})
+      .catch(function(){setQpSpinner(false);});
+    document.getElementById('quiz-bar').scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // Course has exactly one syllabus — select directly, no modal needed
+  selectCourseWithSyllabus(courseId,courseName,syllabusId,syllabusName);
+});
+
+// ── Browse drill-down (for future use) ──
+var coursesView=document.getElementById('browse-courses-view');
+var drillView=document.getElementById('browse-drill-view');
+var browseSpinner=document.getElementById('browse-spinner');
+function showBrowseSpinner(on){browseSpinner.style.display=on?'flex':'none';}
+function fetchPanel(url){showBrowseSpinner(true);return fetch(url,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text();}).finally(function(){showBrowseSpinner(false);});}
+function showDrill(html){coursesView.style.display='none';drillView.innerHTML=html;drillView.style.display='block';drillView.scrollIntoView({behavior:'smooth',block:'start'});}
+function showCourses(){drillView.style.display='none';drillView.innerHTML='';coursesView.style.display='block';}
+document.addEventListener('click',function(e){
+  if(e.target.closest('[data-action="back-courses"]')){showCourses();return;}
+  var bt=e.target.closest('[data-action="back-topics"]');if(bt){fetchPanel('/api/browse/topics/?course_id='+bt.dataset.courseId).then(showDrill).catch(function(){showDrill('<p class="browse-empty-msg">Could not load topics.</p>');});return;}
+  var tc=e.target.closest('[data-action="load-subtopics"]');if(tc){fetchPanel('/api/browse/subtopics/?topic_id='+tc.dataset.topicId).then(showDrill).catch(function(){showDrill('<p class="browse-empty-msg">Could not load sub-topics.</p>');});return;}
+});
+</script>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subtopic.name }} — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a> ›
+    <a href="{% url 'course_index' course.slug %}">{{ course.name }}</a> ›
+    <a href="{% url 'topic_index' course.slug topic.slug %}">{{ topic.name }}</a> ›
+    <span>{{ subtopic.name }}</span>
+  </nav>
+
+  <div class="subtopic-hero card">
+    <h1>{{ subtopic.name }}</h1>
+    <p>{{ question_count }} question{{ question_count|pluralize }} available</p>
+    <a href="{% url 'start_quiz' subtopic.slug %}" class="btn-primary btn-lg">Start Quiz →</a>
+  </div>
+</div>
+{% endblock %}

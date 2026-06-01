@@ -1,0 +1,17 @@
+{% if ad %}
+<div class="promo-ad promo-ad--{{ position }}" data-position="{{ ad.position }}">
+  {% if ad.html_content %}
+    {{ ad.html_content|safe }}
+  {% elif ad.image %}
+    <a href="{{ ad.link_url|default:'#' }}" target="_blank" rel="nofollow noopener">
+      <img src="{{ ad.image.url }}" alt="{{ ad.title }}" class="promo-ad-img">
+    </a>
+  {% else %}
+    {# Text-only fallback ad #}
+    <a href="{{ ad.link_url|default:'#' }}" target="_blank" rel="nofollow noopener" class="promo-ad-text">
+      <span class="promo-ad-label">Ad</span>
+      <span class="promo-ad-title">{{ ad.title }}</span>
+    </a>
+  {% endif %}
+</div>
+{% endif %}

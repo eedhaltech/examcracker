@@ -1,0 +1,41 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Add Sub-topic — {{ topic.name }}{% endblock %}
+{% block page_title %}Add Sub-topic{% endblock %}
+
+{% block content %}
+<div class="hl-topbar">
+  <nav class="hl-breadcrumb">
+    <a href="{% url 'panel_courses' %}">Syllabuses</a>
+    <span class="hl-bc-sep">›</span>
+    <a href="{% url 'syllabus_courses' syllabus.id %}">{{ syllabus.name }}</a>
+    <span class="hl-bc-sep">›</span>
+    <a href="{% url 'course_topics' syllabus.id course.id %}">{{ course.name }}</a>
+    <span class="hl-bc-sep">›</span>
+    <a href="{% url 'topic_subtopics' syllabus.id course.id topic.id %}">{{ topic.name }}</a>
+    <span class="hl-bc-sep">›</span>
+    <span class="hl-bc-current">Add Sub-topic</span>
+  </nav>
+</div>
+
+<div class="panel-card" style="max-width:480px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Topic</label>
+      <input type="text" class="panel-input" value="{{ topic.name }}" disabled>
+    </div>
+    <div class="form-group">
+      <label>Sub-topic Name *</label>
+      <input type="text" name="name" class="panel-input" required autofocus placeholder="e.g. Linear Equations">
+    </div>
+    <div class="form-group">
+      <label>Display Order</label>
+      <input type="number" name="order" value="0" class="panel-input" min="0">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="panel-btn panel-btn--primary">💾 Save Sub-topic</button>
+      <a href="{% url 'topic_subtopics' syllabus.id course.id topic.id %}" class="panel-btn panel-btn--outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

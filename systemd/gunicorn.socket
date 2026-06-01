@@ -1,0 +1,9 @@
+[Unit]
+Description=MCQ Platform Gunicorn Socket
+
+[Socket]
+ListenStream=/run/gunicorn/mcqplatform.sock
+SocketUser=www-data
+
+[Install]
+WantedBy=sockets.target

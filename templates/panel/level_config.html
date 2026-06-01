@@ -1,0 +1,71 @@
+{% extends 'panel/base_panel.html' %}
+{% load panel_tags %}
+{% block title %}Level Access{% endblock %}
+{% block page_title %}Level Access Configuration{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:700px;">
+  <p style="color:var(--muted);margin-bottom:1.5rem;font-size:.9rem;">
+    Control which levels require a paid membership. Changes take effect immediately for all users.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="level-config-grid">
+      {% for lc in levels %}
+      <div class="level-config-card {% if lc.requires_membership %}paid{% endif %}" id="lc-{{ lc.level }}">
+        <div class="lc-header">
+          <span class="lc-num">Level {{ lc.level }}</span>
+          <label class="switch">
+            <input type="checkbox" name="level_{{ lc.level }}_paid"
+                   {% if lc.requires_membership %}checked{% endif %}
+                   onchange="updateCard({{ lc.level }}, this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="lc-status" id="lc-status-{{ lc.level }}">
+          {% if lc.requires_membership %}🔒 Members Only{% else %}🆓 Free{% endif %}
+        </div>
+        <div class="form-group" style="margin-top:.75rem;">
+          <label style="font-size:.75rem;">Label</label>
+          <input type="text" name="level_{{ lc.level }}_label"
+                 value="{{ lc.label }}" class="panel-input" placeholder="e.g. Beginner">
+        </div>
+        <div class="form-group">
+          <label style="font-size:.75rem;">Description</label>
+          <input type="text" name="level_{{ lc.level }}_desc"
+                 value="{{ lc.description }}" class="panel-input" placeholder="Short description">
+        </div>
+        <div class="form-group">
+          <label style="font-size:.75rem;">Max Questions per Session</label>
+          <input type="number" name="level_{{ lc.level }}_max_q"
+                 value="{{ lc.max_questions }}" class="panel-input"
+                 min="0" placeholder="0 = no limit">
+          <span style="font-size:.72rem;color:var(--muted);margin-top:.2rem;display:block;">
+            0 = show all questions. Set e.g. 20 to cap at 20 per quiz.
+          </span>
+        </div>
+        <div class="lc-qcount">
+          {{ lc.level|question_count_for_level }} questions at this level
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="form-actions" style="margin-top:1.5rem;">
+      <button type="submit" class="btn-primary-sm">💾 Save All Changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateCard(level, isPaid) {
+  const card   = document.getElementById('lc-' + level);
+  const status = document.getElementById('lc-status-' + level);
+  card.classList.toggle('paid', isPaid);
+  status.textContent = isPaid ? '🔒 Members Only' : '🆓 Free';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Books & Resources — MCQ Platform{% endblock %}
+{% block meta_description %}Recommended books, courses and tools to help you ace your exams. Curated by MCQ Platform.{% endblock %}
+{% block meta_keywords %}exam books, study material, recommended books, online courses, exam preparation{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-header">
+    <div>
+      <h1>📚 Books & Resources</h1>
+      <p class="page-subtitle">Handpicked books, courses and tools to boost your exam preparation.</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="product-tabs">
+    <a href="{% url 'products' %}" class="product-tab {% if not active_type %}active{% endif %}">All</a>
+    <a href="{% url 'products' %}?type=book"      class="product-tab {% if active_type == 'book' %}active{% endif %}">📖 Books</a>
+    <a href="{% url 'products' %}?type=affiliate"  class="product-tab {% if active_type == 'affiliate' %}active{% endif %}">🔗 Affiliate</a>
+    <a href="{% url 'products' %}?type=course"     class="product-tab {% if active_type == 'course' %}active{% endif %}">🎓 Courses</a>
+    <a href="{% url 'products' %}?type=tool"       class="product-tab {% if active_type == 'tool' %}active{% endif %}">🛠 Tools</a>
+  </div>
+
+  {% if books and not active_type or active_type == 'book' %}
+  <section class="product-section">
+    <h2 class="section-heading">📖 Recommended Books</h2>
+    <div class="products-grid">
+      {% for p in books %}{% include 'products/product_card.html' %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if affiliates and not active_type or active_type == 'affiliate' %}
+  <section class="product-section">
+    <h2 class="section-heading">🔗 Affiliate Resources</h2>
+    <div class="products-grid">
+      {% for p in affiliates %}{% include 'products/product_card.html' %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if courses and not active_type or active_type == 'course' %}
+  <section class="product-section">
+    <h2 class="section-heading">🎓 Online Courses</h2>
+    <div class="products-grid">
+      {% for p in courses %}{% include 'products/product_card.html' %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if tools and not active_type or active_type == 'tool' %}
+  <section class="product-section">
+    <h2 class="section-heading">🛠 Tools & Resources</h2>
+    <div class="products-grid">
+      {% for p in tools %}{% include 'products/product_card.html' %}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if not books and not affiliates and not courses and not tools %}
+  <div class="empty-state" style="padding:4rem 0;">
+    No products added yet. Check back soon!
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

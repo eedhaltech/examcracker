@@ -1,0 +1,61 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ course.name }} — Topics{% endblock %}
+{% block page_title %}{{ course.name }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="drill-breadcrumb">
+  <a href="{% url 'panel_courses' %}">Courses</a>
+  <span class="drill-bc-sep">›</span>
+  {% if course.syllabus %}<a href="{% url 'panel_courses' %}?syllabus={{ course.syllabus_id }}">{{ course.syllabus.name }}</a><span class="drill-bc-sep">›</span>{% endif %}
+  <span class="drill-bc-current">{{ course.name }}</span>
+</div>
+
+<!-- Page header -->
+<div class="drill-page-header">
+  <div class="drill-page-icon">
+    {% if course.icon %}<img src="{{ course.icon.url }}" alt="">{% else %}📚{% endif %}
+  </div>
+  <div>
+    <h2 class="drill-page-title">{{ course.name }}</h2>
+    {% if course.syllabus %}<span class="drill-page-sub">{{ course.syllabus.name }}</span>{% endif %}
+  </div>
+  <div class="drill-page-actions">
+    <a href="{% url 'panel_course_edit' course.id %}" class="panel-btn panel-btn--outline">Edit Course</a>
+    <a href="{% url 'panel_topic_add' course.id %}" class="panel-btn panel-btn--primary">＋ Add Topic</a>
+  </div>
+</div>
+
+<!-- Topics grid -->
+{% if topics %}
+<div class="drill-grid">
+  {% for topic in topics %}
+  <div class="drill-card">
+    <a href="{% url 'panel_topic_detail' topic.id %}" class="drill-card-link">
+      <div class="drill-card-icon">📂</div>
+      <div class="drill-card-body">
+        <div class="drill-card-name">{{ topic.name }}</div>
+        <div class="drill-card-meta">{{ topic.subtopics.count }} sub-topic{{ topic.subtopics.count|pluralize }}</div>
+      </div>
+      <span class="drill-card-arrow">›</span>
+    </a>
+    <div class="drill-card-actions">
+      <a href="{% url 'panel_subtopic_add' topic.id %}" class="panel-btn panel-btn--sm">＋ Sub-topic</a>
+      <form method="post" action="{% url 'panel_topic_delete' topic.id %}" style="display:inline"
+            data-confirm="Delete topic '{{ topic.name }}'?">
+        {% csrf_token %}
+        <button class="panel-btn panel-btn--sm panel-btn--danger">Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="drill-empty">
+  No topics yet.
+  <a href="{% url 'panel_topic_add' course.id %}">Add the first topic →</a>
+</div>
+{% endif %}
+
+{% endblock %}

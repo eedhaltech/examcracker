@@ -1,0 +1,59 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ action }} Course{% endblock %}
+{% block page_title %}{{ action }} Course{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:480px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-group">
+      <label>Syllabus</label>
+      <select name="syllabus_id" class="panel-input">
+        <option value="">— No Syllabus —</option>
+        {% for s in syllabuses %}
+        <option value="{{ s.id }}"
+          {% if course.syllabus_id and course.syllabus_id|stringformat:"s" == s.id|stringformat:"s" %}
+            selected
+          {% endif %}>
+          {{ s.name }}
+        </option>
+        {% endfor %}
+      </select>
+      {% if not syllabuses %}
+      <p class="hint" style="color:var(--warning);margin-top:.35rem;">
+        No syllabuses yet. <a href="{% url 'panel_syllabus_add' %}">Create one first →</a>
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label>Course Name *</label>
+      <input type="text" name="name" value="{{ course.name|default:'' }}"
+             class="panel-input" required placeholder="e.g. Mathematics, Science">
+    </div>
+
+    <div class="form-group">
+      <label>Display Order</label>
+      <input type="number" name="order" value="{{ course.order|default:0 }}"
+             class="panel-input" min="0">
+    </div>
+
+    <div class="form-group">
+      <label>Icon Image (optional)</label>
+      <input type="file" name="icon" accept="image/*" class="panel-input">
+      {% if course.icon %}
+      <p class="hint" style="margin-top:.35rem;">
+        Current: <strong>{{ course.icon.name }}</strong>
+        <img src="{{ course.icon.url }}" alt="" style="height:32px;margin-left:.5rem;vertical-align:middle;border-radius:4px;">
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Save Course</button>
+      <a href="{% url 'panel_courses' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

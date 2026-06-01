@@ -1,0 +1,42 @@
+{% if course %}
+<div class="browse-level">
+
+  <!-- Breadcrumb / back nav -->
+  <div class="browse-nav">
+    <button class="browse-back" data-action="back-courses" type="button">
+      ← All Courses
+    </button>
+    <span class="browse-nav-sep">›</span>
+    <span class="browse-nav-current">{{ course.name }}</span>
+  </div>
+
+  <!-- Heading -->
+  <h2 class="browse-heading">
+    {% if course.icon %}<img src="{{ course.icon.url }}" alt="" class="browse-heading-icon">{% endif %}
+    {{ course.name }}
+    <span class="browse-heading-count">{{ topics|length }} topic{{ topics|length|pluralize }}</span>
+  </h2>
+
+  <!-- Topic cards -->
+  {% if topics %}
+  <div class="courses-grid">
+    {% for topic in topics %}
+    <button type="button"
+        class="course-card"
+        data-action="load-subtopics"
+        data-topic-id="{{ topic.id }}"
+        aria-label="Browse {{ topic.name }}">
+      <div class="course-icon-placeholder">📖</div>
+      <h3>{{ topic.name }}</h3>
+      <span class="topic-count">{{ topic.subtopics.count }} sub-topic{{ topic.subtopics.count|pluralize }}</span>
+    </button>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="browse-empty-msg">No topics in this course yet.</p>
+  {% endif %}
+
+</div>
+{% else %}
+<p class="browse-empty-msg">Course not found.</p>
+{% endif %}

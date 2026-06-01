@@ -1,0 +1,42 @@
+{% load quiz_extras %}
+{% comment %}
+  Context variables expected:
+    question   — Question object
+    answered   — dict {question_id: selected_option_id}
+    attempt    — Attempt object
+    q_number   — display number (int)
+{% endcomment %}
+
+{% with selected_option_id=answered|get_item:question.id %}
+<div class="question-block" id="q{{ question.id }}">
+  <div class="question-header">
+    <span class="q-number">Q.{{ q_number }}</span>
+    <span class="q-correct-pct" title="{{ question.total_attempted }} total attempts">
+      {{ question.percent_correct }}% correct
+    </span>
+  </div>
+
+  <div class="question-body">
+    <p>{{ question.body }}</p>
+    {% if question.image %}
+    <img src="{{ question.image.url }}" alt="Question image" class="question-img">
+    {% endif %}
+  </div>
+
+  <div class="options-list">
+    {% for option in question.options.all %}
+    <label class="option-label {% if selected_option_id == option.id %}selected{% endif %}">
+      <input type="radio"
+             name="question_{{ question.id }}"
+             value="{{ option.id }}"
+             {% if selected_option_id == option.id %}checked{% endif %}>
+      <span class="option-key">{{ option.label }}</span>
+      <span class="option-text">{{ option.text }}</span>
+      {% if option.image %}
+      <img src="{{ option.image.url }}" alt="Option {{ option.label }}" class="option-img">
+      {% endif %}
+    </label>
+    {% endfor %}
+  </div>
+</div>
+{% endwith %}

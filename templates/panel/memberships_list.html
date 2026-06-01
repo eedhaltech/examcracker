@@ -1,0 +1,78 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Memberships{% endblock %}
+{% block page_title %}Memberships{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Subscriptions</h3>
+    <div style="display:flex;gap:.5rem;align-items:center;">
+      <a href="{% url 'panel_razorpay_settings' %}" class="btn-outline">Razorpay Settings</a>
+      <a href="{% url 'panel_membership_grant' %}" class="btn-primary-sm">+ Grant Membership</a>
+    </div>
+  </div>
+
+  <form method="get" class="panel-filters" style="margin-bottom:1rem;">
+    <select name="status" class="panel-select" onchange="this.form.submit()">
+      <option value="">All payment statuses</option>
+      <option value="pending" {% if status == 'pending' %}selected{% endif %}>Pending</option>
+      <option value="captured" {% if status == 'captured' %}selected{% endif %}>Captured</option>
+      <option value="failed" {% if status == 'failed' %}selected{% endif %}>Failed</option>
+    </select>
+  </form>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Plan</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Order</th>
+        <th>Payment</th>
+        <th>Active</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub in page_obj %}
+      <tr>
+        <td>
+          <a href="{% url 'panel_user_detail' sub.user.id %}">{{ sub.user.email }}</a>
+        </td>
+        <td>{{ sub.get_plan_display }}</td>
+        <td>{{ sub.amount_display }}</td>
+        <td>{{ sub.get_payment_status_display }}</td>
+        <td>{{ sub.start_date }}</td>
+        <td>{{ sub.end_date }}</td>
+        <td class="muted">{{ sub.razorpay_order_id|default:"—" }}</td>
+        <td class="muted">{{ sub.razorpay_payment_id|default:"—" }}</td>
+        <td>
+          {% if sub.is_active %}<span class="badge-yes">Active</span>
+          {% else %}<span class="badge-no">Expired</span>{% endif %}
+        </td>
+        <td>
+          <form method="post" action="{% url 'panel_membership_payment_action' sub.id %}" style="display:flex;gap:.35rem;flex-wrap:wrap;">
+            {% csrf_token %}
+            {% if sub.payment_status != 'captured' %}
+              <button name="action" value="mark_captured" class="btn-sm">Mark Captured</button>
+            {% endif %}
+            {% if sub.payment_status != 'failed' %}
+              <button name="action" value="mark_failed" class="btn-danger-sm">Mark Failed</button>
+            {% endif %}
+            {% if sub.is_active %}
+              <button name="action" value="deactivate" class="btn-danger-sm">Deactivate</button>
+            {% endif %}
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="10" class="empty">No subscriptions yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'panel/includes/pagination.html' %}
+</div>
+{% endblock %}

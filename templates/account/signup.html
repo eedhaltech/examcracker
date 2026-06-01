@@ -1,0 +1,63 @@
+{% extends "account/base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign Up — MCQ Platform{% endblock %}
+
+{% block inner %}
+  <div class="auth-header">
+    <h1>Create your account</h1>
+    <p>Start practicing and track your progress.</p>
+  </div>
+
+  {% if has_google_oauth %}
+    <a class="btn-google btn-full" href="{% provider_login_url 'google' process='signup' %}">
+      Sign up with Google
+    </a>
+  {% else %}
+    <button class="btn-google btn-full" type="button" disabled>
+      Sign up with Google (Coming soon)
+    </button>
+    <div class="filter-help" style="text-align:center;">
+      Admin needs to configure Google OAuth (SocialApp) to enable this.
+    </div>
+  {% endif %}
+
+  <div class="auth-divider"><span>or</span></div>
+
+  <form method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="form-error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-group">
+      <label for="{{ form.email.id_for_label }}">Email</label>
+      {{ form.email }}
+      {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.password1.id_for_label }}">Password</label>
+      {{ form.password1 }}
+      {% if form.password1.errors %}<div class="field-error">{{ form.password1.errors }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+      {{ form.password2 }}
+      {% if form.password2.errors %}<div class="field-error">{{ form.password2.errors }}</div>{% endif %}
+    </div>
+
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+
+    <button type="submit" class="btn-primary btn-full">Create account</button>
+  </form>
+
+  <div class="auth-footer">
+    <span>Already have an account?</span>
+    <a href="{% url 'account_login' %}">Login</a>
+  </div>
+{% endblock %}

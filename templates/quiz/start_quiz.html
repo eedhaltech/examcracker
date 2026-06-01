@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Quiz — {{ subtopic.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a> ›
+    <a href="{% url 'course_index' subtopic.topic.course.slug %}">{{ subtopic.topic.course.name }}</a> ›
+    <a href="{% url 'topic_index' subtopic.topic.course.slug subtopic.topic.slug %}">{{ subtopic.topic.name }}</a> ›
+    <span>{{ subtopic.name }}</span>
+  </nav>
+
+  <div class="start-quiz-card card">
+    <h1>{{ subtopic.name }}</h1>
+
+    <div class="quiz-meta">
+      <span class="meta-item">📝 {{ question_count }} question{{ question_count|pluralize }}</span>
+      <span class="meta-item">🎯 Your level: <strong>{{ current_level }}</strong></span>
+      {% if is_member %}
+        <span class="meta-item member-badge">⭐ Member — Unlimited</span>
+      {% else %}
+        <span class="meta-item">{{ attempt_count }}/{{ max_attempts }} attempts used today</span>
+      {% endif %}
+    </div>
+
+    <!-- Level access grid -->
+    <div class="level-access-grid">
+      {% for info in levels_info %}
+      <div class="level-tile {% if info.is_current %}level-current{% endif %} {% if not info.accessible %}level-locked{% endif %}">
+        <div class="level-num">L{{ info.level }}</div>
+        {% if info.accessible %}
+          {% if info.is_current %}
+            <div class="level-badge badge-active">▶ Active</div>
+          {% else %}
+            <div class="level-badge badge-free">🆓 Free</div>
+          {% endif %}
+        {% else %}
+          <div class="level-badge badge-locked">🔒 Members</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if not allowed %}
+    <div class="alert alert-warning">
+      <strong>Daily limit reached.</strong> You've used all {{ max_attempts }} free attempts today.
+      Come back tomorrow or <a href="{% url 'subscribe' %}">upgrade for unlimited access</a>.
+    </div>
+
+    {% else %}
+
+    {% if not is_member %}
+    <div class="alert alert-info">
+      🔒 Locked levels require a membership.
+      <a href="{% url 'subscribe' %}"><strong>Upgrade from ₹10</strong></a> to unlock all 5 levels.
+    </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'start_quiz' subtopic.slug %}">
+      {% csrf_token %}
+
+      <div class="quiz-options">
+        <label class="toggle-label">
+          <input type="checkbox" name="negative_marking" id="negative-marking">
+          <span>Enable negative marking <span style="color:var(--text-muted);font-size:.85em;">(−0.25 per wrong answer)</span></span>
+        </label>
+      </div>
+
+      {% if not is_member %}
+      <div class="member-notice">
+        <span>🔒 Free: Levels 1–2 · No timer · {{ max_attempts }} attempts/day</span>
+        <a href="{% url 'subscribe' %}" class="btn-upgrade-sm">Unlock All</a>
+      </div>
+      {% endif %}
+
+      <div style="text-align:center;margin-top:1.5rem;">
+        <button type="submit" class="btn-primary btn-lg">Start Quiz →</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

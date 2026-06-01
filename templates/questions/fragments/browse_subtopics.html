@@ -1,0 +1,43 @@
+{% if topic %}
+<div class="browse-level">
+
+  <!-- Breadcrumb / back nav -->
+  <div class="browse-nav">
+    <button class="browse-back" data-action="back-courses" type="button">
+      ← All Courses
+    </button>
+    <span class="browse-nav-sep">›</span>
+    <button class="browse-back browse-back--inline" data-action="back-topics" data-course-id="{{ topic.course_id }}" type="button">
+      {{ topic.course.name }}
+    </button>
+    <span class="browse-nav-sep">›</span>
+    <span class="browse-nav-current">{{ topic.name }}</span>
+  </div>
+
+  <!-- Heading -->
+  <h2 class="browse-heading">
+    {{ topic.name }}
+    <span class="browse-heading-count">{{ subtopics|length }} sub-topic{{ subtopics|length|pluralize }}</span>
+  </h2>
+
+  <!-- Subtopic cards -->
+  {% if subtopics %}
+  <div class="courses-grid">
+    {% for subtopic in subtopics %}
+    <a href="{% url 'subtopic_index' topic.course.slug topic.slug subtopic.slug %}"
+       class="course-card course-card--subtopic">
+      <div class="course-icon-placeholder">📝</div>
+      <h3>{{ subtopic.name }}</h3>
+      <span class="topic-count">{{ subtopic.questions.count }} question{{ subtopic.questions.count|pluralize }}</span>
+      <span class="browse-start-cta">Start Quiz →</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="browse-empty-msg">No sub-topics in this topic yet.</p>
+  {% endif %}
+
+</div>
+{% else %}
+<p class="browse-empty-msg">Topic not found.</p>
+{% endif %}

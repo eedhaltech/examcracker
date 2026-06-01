@@ -1,0 +1,6 @@
+course,topic,subtopic,question_type,question,option_a,option_b,option_c,option_d,correct_answer,reason,level
+Aptitude,Numbers,LCM and HCF,theory,"What is the LCM of 12 and 18?",24,36,48,72,B,"LCM of 12 and 18 = 36. Prime factorization: 12=2²×3, 18=2×3². LCM=2²×3²=36.",2
+Aptitude,Numbers,LCM and HCF,theory,"What is the HCF of 24 and 36?",6,8,12,18,C,"HCF of 24 and 36 = 12. Factors of 24: 1,2,3,4,6,8,12,24. Factors of 36: 1,2,3,4,6,9,12,18,36. Highest common = 12.",1
+Aptitude,Percentages,Basic Percentages,theory,"What is 25% of 200?",40,50,60,75,B,"25% of 200 = (25/100) × 200 = 50.",1
+Aptitude,Percentages,Basic Percentages,theory,"If a price increases from ₹80 to ₹100, what is the percentage increase?",20,25,30,15,B,"Percentage increase = ((100-80)/80) × 100 = (20/80) × 100 = 25%.",2
+General Knowledge,Indian History,Ancient India,theory,"Which dynasty built the famous Ajanta Caves?",Maurya,Gupta,Satavahana,Vakataka,D,"The Ajanta Caves were primarily built under the patronage of the Vakataka dynasty during the 5th century CE.",3

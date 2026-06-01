@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Membership Plans — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="subscribe-header">
+    <h1>Unlock Full Access</h1>
+    <p>Practice without limits. Track your progress. Ace your exams.</p>
+    <div class="subscribe-actions">
+      <a href="{% url 'payment_history' %}" class="btn-secondary-sm">View Payment History</a>
+    </div>
+  </div>
+
+  <div class="plans-grid">
+    {% for plan in plans %}
+    <div class="plan-card {% if plan.popular %}plan-popular{% endif %}">
+      {% if plan.popular %}
+      <div class="popular-badge">⭐ Most Popular</div>
+      {% endif %}
+
+      <div class="plan-header">
+        <div class="plan-name">{{ plan.label }}</div>
+        <div class="plan-price">
+          <span class="price-currency">₹</span>
+          <span class="price-amount">{{ plan.price }}</span>
+        </div>
+        <p class="plan-tagline">{{ plan.tagline }}</p>
+      </div>
+
+      <ul class="plan-features">
+        {% for feature in plan.features %}
+        <li>{{ feature }}</li>
+        {% endfor %}
+      </ul>
+
+      <div>
+        <a href="{{ plan.checkout_url }}" class="btn-primary btn-full">
+          Pay ₹{{ plan.price }}
+        </a>
+        <p class="plan-note">Secure Razorpay checkout with instant membership activation.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Comparison table -->
+  <div class="subscribe-footer">
+    <h3>Free vs Member</h3>
+    <div class="features-compare">
+      <div class="compare-col">
+        <h4>🆓 Free</h4>
+        <ul>
+          <li>5 attempts per day</li>
+          <li>Levels 1 &amp; 2 only</li>
+          <li>No countdown timer</li>
+          <li>Ads shown</li>
+          <li>Analytics locked</li>
+        </ul>
+      </div>
+      <div class="compare-col member">
+        <h4>⭐ Member</h4>
+        <ul>
+          <li>Unlimited attempts</li>
+          <li>All 5 levels</li>
+          <li>Countdown timer</li>
+          <li>Ad-free experience</li>
+          <li>Full analytics dashboard</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

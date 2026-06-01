@@ -1,0 +1,50 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ action }} Ad{% endblock %}
+{% block page_title %}{{ action }} Promo Ad{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:640px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Title *</label>
+      <input type="text" name="title" value="{{ ad.title|default:'' }}" class="panel-input" required>
+    </div>
+    <div class="form-group">
+      <label>Position</label>
+      <select name="position" class="panel-select">
+        {% for val, label in positions %}
+        <option value="{{ val }}" {% if ad.position == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Custom HTML Content <span class="hint">(leave blank to use image)</span></label>
+      <textarea name="html_content" rows="5" class="panel-textarea" placeholder="<div>Your ad HTML here</div>">{{ ad.html_content|default:'' }}</textarea>
+    </div>
+    <div class="form-group">
+      <label>Ad Image (optional)</label>
+      <input type="file" name="image" accept="image/*" class="panel-input">
+      {% if ad.image %}<p class="hint">Current: {{ ad.image.name }}</p>{% endif %}
+    </div>
+    <div class="form-group">
+      <label>Link URL</label>
+      <input type="url" name="link_url" value="{{ ad.link_url|default:'' }}" class="panel-input" placeholder="https://…">
+    </div>
+    <div class="form-group" style="display:flex;gap:2rem;">
+      <label class="toggle-label-sm">
+        <input type="checkbox" name="is_active" {% if ad.is_active or not ad %}checked{% endif %}>
+        Active
+      </label>
+      <label class="toggle-label-sm">
+        <input type="checkbox" name="show_to_members" {% if ad.show_to_members %}checked{% endif %}>
+        Show to Members
+      </label>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Save Ad</button>
+      <a href="{% url 'panel_ads' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

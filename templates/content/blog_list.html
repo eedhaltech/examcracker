@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Blog — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:900px;">
+  <div class="dashboard-header">
+    <h1>Blog</h1>
+    <p>Updates and study tips.</p>
+  </div>
+
+  {% if posts %}
+    <div style="display:grid;gap:1rem;">
+      {% for p in posts %}
+        <div class="card">
+          <div style="display:flex;gap:1rem;align-items:flex-start;">
+            {% if p.cover_image %}
+              <img src="{{ p.cover_image.url }}" alt="{{ p.title }}" style="width:140px;height:90px;object-fit:cover;border-radius:10px;">
+            {% endif %}
+            <div style="flex:1;">
+              <h2 style="line-height:1.2;margin-bottom:.35rem;">
+                <a href="{% url 'blog_detail' p.slug %}">{{ p.title }}</a>
+              </h2>
+              <div class="muted" style="font-size:.85rem;">
+                {{ p.created_at|date:"d M Y" }}
+              </div>
+              {% if p.summary %}
+                <p style="margin-top:.6rem;">{{ p.summary }}</p>
+              {% else %}
+                <p style="margin-top:.6rem;">{{ p.content|truncatechars:180 }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card"><p class="empty-state">No posts yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}
+

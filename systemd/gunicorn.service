@@ -1,0 +1,26 @@
+[Unit]
+Description=MCQ Platform Gunicorn Daemon
+Requires=gunicorn.socket
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+RuntimeDirectory=gunicorn
+WorkingDirectory=/var/www/mcqplatform
+ExecStart=/var/www/mcqplatform/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 4 \
+          --worker-class sync \
+          --timeout 60 \
+          --bind unix:/run/gunicorn/mcqplatform.sock \
+          mcqplatform.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

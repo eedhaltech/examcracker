@@ -1,0 +1,29 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ action }} Syllabus{% endblock %}
+{% block page_title %}{{ action }} Syllabus{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:480px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Syllabus Name *</label>
+      <input type="text" name="name" value="{{ syllabus.name|default:'' }}" class="panel-input" required
+             placeholder="e.g. Class 10, JEE, NEET">
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea name="description" class="panel-input" rows="3"
+                placeholder="Optional description">{{ syllabus.description|default:'' }}</textarea>
+    </div>
+    <div class="form-group">
+      <label>Display Order</label>
+      <input type="number" name="order" value="{{ syllabus.order|default:0 }}" class="panel-input" min="0">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Save</button>
+      <a href="{% url 'panel_courses' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

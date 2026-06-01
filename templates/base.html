@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% if seo %}{{ seo.site_name }}{% else %}ExamKracker — Crack Exams. Build Futures.{% endif %}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}{% if seo %}{{ seo.home_description }}{% else %}Practice topic-wise MCQs, get instant evaluation and track your performance. Free and premium plans available.{% endif %}{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}{% if seo %}{{ seo.home_keywords }}{% else %}MCQ, multiple choice questions, exam preparation, quiz, practice test, online quiz{% endif %}{% endblock %}">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="{% block og_title %}{% if seo %}{{ seo.site_name }}{% else %}MCQ Platform{% endif %}{% endblock %}">
+    <meta property="og:description" content="Practice topic-wise MCQs with instant evaluation and performance tracking.">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a href="{% url 'home' %}" class="logo logo--with-name">
+                <img src="{% static 'images/logo.png' %}" alt="ExamKracker"
+                     class="logo-img"
+                     onerror="this.style.display='none';">
+                <span class="logo-name">Exam<span>Kracker</span></span>
+            </a>
+
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+
+            <nav class="main-nav" id="main-nav">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'home' %}" class="nav-link">Home</a>
+                    <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                    <a href="{% url 'subscribe' %}" class="nav-link">Membership</a>
+                    <a href="{% url 'payment_history' %}" class="nav-link">Payments</a>
+                    <a href="{% url 'products' %}" class="nav-link">Products</a>
+                    <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+                    {% if user.is_staff %}
+                        <!-- <a href="/admin/" class="nav-link">Admin Panel</a> -->
+                        <a href="/manage/" class="nav-link">Staff Panel</a>
+                    {% endif %}
+                    {% if request.paywalls_active and not request.is_member %}
+                        <a href="{% url 'subscribe' %}" class="btn-upgrade">⭐ Upgrade ₹10</a>
+                    {% else %}
+                        {% if request.is_member %}
+                            <span class="member-pill">⭐ Member</span>
+                        {% endif %}
+                    {% endif %}
+                    <div class="user-menu">
+                        {% if user.profile.avatar_url %}
+                            <img src="{{ user.profile.avatar_url }}" alt="avatar" class="avatar">
+                        {% else %}
+                            <div class="avatar-placeholder">{{ user.email|first|upper }}</div>
+                        {% endif %}
+                        <div class="user-dropdown">
+                            <span class="user-email">{{ user.email }}</span>
+                            <a href="{% url 'account_logout' %}" class="logout-link">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'products' %}" class="nav-link">Products</a>
+                    <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+                    <a href="{% url 'account_login' %}" class="btn-primary">Login</a>
+                    <a href="{% url 'account_signup' %}" class="btn-secondary-sm">Sign Up</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <div class="site-alerts" id="site-alerts">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="site-alert site-alert--{{ message.tags }}" role="alert">
+                <span class="site-alert__icon">
+                    {% if 'success' in message.tags %}✅
+                    {% elif 'error' in message.tags %}❌
+                    {% elif 'warning' in message.tags %}⚠️
+                    {% else %}ℹ️{% endif %}
+                </span>
+                <span class="site-alert__text">{{ message }}</span>
+                <button class="site-alert__close" type="button" onclick="this.closest('.site-alert').remove()" aria-label="Dismiss">×</button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- In-page confirmation bar (replaces browser confirm()) -->
+    <div id="confirm-bar" class="confirm-bar" style="display:none;">
+        <div class="confirm-bar-inner">
+            <div class="confirm-text" id="confirm-text"></div>
+            <div class="confirm-actions">
+                <button type="button" class="btn-secondary" id="confirm-cancel">Cancel</button>
+                <button type="button" class="btn-primary" id="confirm-ok">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <main class="main-content">
+        {% block course_nav %}{% endblock %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <a href="{% url 'home' %}" class="logo logo--with-name">
+                    <img src="{% static 'images/logo.png' %}" alt="ExamKracker"
+                         class="logo-img logo-img--footer"
+                         onerror="this.style.display='none';">
+                    <span class="logo-name logo-name--footer">Exam<span>Kracker</span></span>
+                </a>
+                <p>Crack Exams. Build Futures.</p>
+            </div>
+            <div class="footer-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                {% if request.paywalls_active %}
+                    <a href="{% url 'subscribe' %}">Membership</a>
+                {% endif %}
+            </div>
+            <div class="footer-copy">
+                <p>&copy; 2024 MCQ Platform. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // Mobile nav toggle
+    const navToggle = document.getElementById('nav-toggle');
+    const mainNav = document.getElementById('main-nav');
+    if (navToggle) {
+        navToggle.addEventListener('click', () => {
+            mainNav.classList.toggle('open');
+            navToggle.classList.toggle('active');
+        });
+    }
+    // Auto-dismiss each site alert after 6s (keep container alive for JS alerts)
+    (function autoDismissSiteAlerts(){
+        document.querySelectorAll('.site-alert').forEach((el) => {
+            setTimeout(() => {
+                if (!el || !el.parentElement) return;
+                el.style.transition = 'opacity .35s';
+                el.style.opacity = '0';
+                setTimeout(() => { if (el.parentElement) el.remove(); }, 350);
+            }, 6000);
+        });
+    })();
+
+    // JS site alerts (no browser popups)
+    window.showSiteAlert = function(message, level = 'info') {
+        const container = document.getElementById('site-alerts');
+        if (!container) return;
+        const alert = document.createElement('div');
+        alert.className = `site-alert site-alert--${level}`;
+        const icon = (level === 'success') ? '✅' : (level === 'warning') ? '⚠️' : (level === 'error' || level === 'danger') ? '❌' : 'ℹ️';
+        alert.innerHTML = `
+            <span class="site-alert__icon">${icon}</span>
+            <span class="site-alert__text"></span>
+            <button class="site-alert__close" type="button" aria-label="Dismiss">×</button>
+        `;
+        alert.querySelector('.site-alert__text').textContent = message;
+        alert.querySelector('.site-alert__close').addEventListener('click', () => alert.remove());
+        container.prepend(alert);
+        setTimeout(() => {
+            if (!alert.parentElement) return;
+            alert.style.transition = 'opacity .35s';
+            alert.style.opacity = '0';
+            setTimeout(() => { if (alert.parentElement) alert.remove(); }, 350);
+        }, 6500);
+    };
+
+    // In-page confirm bar (replaces window.confirm and inline onsubmit confirms)
+    let __confirmCallback = null;
+    window.showSiteConfirm = function(message, onConfirm) {
+        const bar = document.getElementById('confirm-bar');
+        const txt = document.getElementById('confirm-text');
+        const ok  = document.getElementById('confirm-ok');
+        const cancel = document.getElementById('confirm-cancel');
+        if (!bar || !txt || !ok || !cancel) return;
+        __confirmCallback = onConfirm;
+        txt.textContent = message;
+        bar.style.display = 'block';
+        cancel.focus();
+    };
+    (function wireConfirmBar(){
+        const bar = document.getElementById('confirm-bar');
+        const ok  = document.getElementById('confirm-ok');
+        const cancel = document.getElementById('confirm-cancel');
+        if (!bar || !ok || !cancel) return;
+
+        function close() {
+            bar.style.display = 'none';
+            __confirmCallback = null;
+        }
+        cancel.addEventListener('click', close);
+        ok.addEventListener('click', () => {
+            const cb = __confirmCallback;
+            close();
+            if (typeof cb === 'function') cb();
+        });
+
+        // Intercept forms with data-confirm="..."
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!(form instanceof HTMLFormElement)) return;
+            const msg = form.getAttribute('data-confirm');
+            if (!msg) return;
+            if (form.getAttribute('data-confirmed') === '1') return;
+            e.preventDefault();
+            window.showSiteConfirm(msg, () => {
+                form.setAttribute('data-confirmed', '1');
+                form.submit();
+            });
+        }, true);
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,63 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ course.name }} — Topics{% endblock %}
+{% block page_title %}Topics{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="panel-breadcrumb">
+  <a href="{% url 'panel_courses' %}">Syllabuses</a>
+  <span>›</span>
+  <a href="{% url 'syllabus_courses' syllabus.id %}">{{ syllabus.name }}</a>
+  <span>›</span>
+  <span>{{ course.name }}</span>
+</div>
+
+<div class="panel-card">
+  <div class="card-head">
+    <h3>{{ course.name }} — Topics</h3>
+    <a href="{% url 'course_topic_add' syllabus.id course.id %}" class="btn-primary-sm">+ Add Topic</a>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Sub-topics</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for topic in topics %}
+      <tr>
+        <td>
+          <a href="{% url 'topic_subtopics' syllabus.id course.id topic.id %}" style="font-weight:600;">
+            {{ topic.name }}
+          </a>
+        </td>
+        <td>
+          <span class="badge-yes">{{ topic.subtopic_count }} sub-topic{{ topic.subtopic_count|pluralize }}</span>
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <a href="{% url 'topic_subtopics' syllabus.id course.id topic.id %}" class="btn-sm">View Sub-topics →</a>
+            <form method="post" action="{% url 'panel_topic_delete' topic.id %}" style="display:inline"
+                  data-confirm="Delete topic '{{ topic.name }}'?">
+              {% csrf_token %}
+              <button class="btn-danger-sm">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="empty">
+          No topics in <strong>{{ course.name }}</strong> yet.
+          <a href="{% url 'course_topic_add' syllabus.id course.id %}">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

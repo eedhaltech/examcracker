@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Products — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="dashboard-header">
+    <h1>Products</h1>
+    <p>Books and useful resources.</p>
+  </div>
+
+  {% if items %}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;">
+      {% for p in items %}
+        <div class="card">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" alt="{{ p.title }}" style="border-radius:10px;margin-bottom:.85rem;">
+          {% endif %}
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;">
+            <h3 style="line-height:1.25;">{{ p.title }}</h3>
+            {% if p.price_text %}
+              <div class="level-badge-sm" style="white-space:nowrap;">{{ p.price_text }}</div>
+            {% endif %}
+          </div>
+          {% if p.description %}
+            <p class="muted" style="margin-top:.5rem;">{{ p.description }}</p>
+          {% endif %}
+          {% if p.affiliate_link %}
+            <div style="margin-top:1rem;">
+              <a class="btn-primary btn-full" href="{{ p.affiliate_link }}" target="_blank" rel="noopener">
+                View / Buy
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card">
+      <p class="empty-state">No products available yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+

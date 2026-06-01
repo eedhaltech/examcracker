@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Results — {{ attempt.subtopic.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Score card -->
+  <div class="results-header card">
+    <h1>Quiz Results</h1>
+    <p class="results-subtitle">
+      {{ attempt.subtopic.name }} &mdash; Level {{ attempt.level_at_attempt }}
+    </p>
+
+    <div class="score-summary">
+      <div class="score-big">
+        <span class="score-value">{{ attempt.score|floatformat:1 }}</span>
+        <span class="score-max">/ {{ attempt.max_score }}</span>
+      </div>
+      <div class="score-stats">
+        <div class="stat correct">✅ {{ attempt.correct_count }} Correct</div>
+        <div class="stat incorrect">❌ {{ attempt.incorrect_count }} Incorrect</div>
+        <div class="stat skipped">⏭ {{ attempt.skipped_count }} Skipped</div>
+        <div class="stat time">⏱ {{ time_display }}</div>
+      </div>
+    </div>
+
+    <!-- Level progress -->
+    <div class="level-progress">
+      <div class="level-info">
+        <span>Level {{ current_level }} — {{ accuracy }}% overall accuracy</span>
+        {% if current_level < 5 %}
+        <span>{{ progress_pct }}% toward Level {{ current_level|add:"1" }}</span>
+        {% else %}
+        <span>🏆 Max level!</span>
+        {% endif %}
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{{ progress_pct }}%"></div>
+      </div>
+    </div>
+
+    <div class="results-actions">
+      <a href="{% url 'start_quiz' attempt.subtopic.slug %}" class="btn-primary">🔄 Retry Quiz</a>
+      <a href="{% url 'dashboard' %}" class="btn-secondary">📊 Dashboard</a>
+      <a href="{% url 'home' %}" class="btn-secondary">🏠 Home</a>
+    </div>
+  </div>
+
+  <!-- Answer review -->
+  <div class="answers-review">
+    <h2>Answer Review</h2>
+    {% for answer in answers %}
+    <div class="answer-block {% if answer.is_correct %}correct{% elif answer.is_skipped %}skipped{% else %}incorrect{% endif %}">
+      <div class="answer-header">
+        <span class="q-num">Q{{ forloop.counter }}</span>
+        <span class="q-status">
+          {% if answer.is_correct %}✅ Correct
+          {% elif answer.is_skipped %}⏭ Skipped
+          {% else %}❌ Incorrect{% endif %}
+        </span>
+        <span class="q-stat">{{ answer.question.percent_correct }}% of users got this right</span>
+      </div>
+
+      <p class="q-body">{{ answer.question.body }}</p>
+      {% if answer.question.image %}
+      <img src="{{ answer.question.image.url }}" alt="Question image" class="question-img" style="margin-bottom:.75rem;">
+      {% endif %}
+
+      <div class="options-review">
+        {% for option in answer.question.options.all %}
+        <div class="option-review
+          {% if option.is_correct %}option-correct{% endif %}
+          {% if answer.selected_option == option and not option.is_correct %}option-wrong{% endif %}">
+          <span class="option-key">{{ option.label }}</span>
+          <span class="option-text">{{ option.text }}</span>
+          {% if option.is_correct %}
+            <span class="badge-correct">✓ Correct answer</span>
+          {% endif %}
+          {% if answer.selected_option == option and not option.is_correct %}
+            <span class="badge-wrong">✗ Your answer</span>
+          {% endif %}
+          {% if option.image %}
+          <img src="{{ option.image.url }}" alt="Option {{ option.label }}" class="option-img-sm">
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="explanation">
+        <strong>Explanation:</strong> {{ answer.question.explanation }}
+      </div>
+    </div>
+    {% empty %}
+    <p class="empty-state">No answers recorded.</p>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

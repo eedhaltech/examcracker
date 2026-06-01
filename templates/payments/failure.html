@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Failed — Try Again{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="subscribe-header">
+    <h1>Payment Failed</h1>
+    <p>We could not complete the payment.</p>
+  </div>
+
+  <div class="panel-card" style="max-width:700px; margin: 0 auto;">
+    <div class="panel-content">
+      <p>{{ reason }}</p>
+      <div class="button-row">
+        <a href="{% url 'subscribe' %}" class="btn-primary">Choose a Plan Again</a>
+        <a href="{% url 'dashboard' %}" class="btn-outline">Return to Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

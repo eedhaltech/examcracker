@@ -1,0 +1,60 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Ads{% endblock %}
+{% block page_title %}Promo Ads{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Ads</h3>
+    <a href="{% url 'panel_ad_add' %}" class="btn-primary-sm">+ Add Ad</a>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr><th>Title</th><th>Position</th><th>Audience</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for ad in ads %}
+      <tr>
+        <td><strong>{{ ad.title }}</strong></td>
+        <td>{{ ad.get_position_display }}</td>
+        <td>{% if ad.show_to_members %}Members{% else %}Non-members{% endif %}</td>
+        <td>
+          <button class="toggle-btn {% if ad.is_active %}active{% endif %}"
+                  data-id="{{ ad.id }}"
+                  onclick="toggleAd({{ ad.id }}, this)">
+            {% if ad.is_active %}🟢 Active{% else %}🔴 Inactive{% endif %}
+          </button>
+        </td>
+        <td class="actions-cell">
+          <a href="{% url 'panel_ad_edit' ad.id %}" class="btn-sm">Edit</a>
+          <form method="post" action="{% url 'panel_ad_delete' ad.id %}" style="display:inline"
+                data-confirm="Delete this ad?">
+            {% csrf_token %}
+            <button class="btn-danger-sm">Del</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty">No ads yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAd(id, btn) {
+  fetch(`/manage/ads/${id}/toggle/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+  })
+  .then(r => r.json())
+  .then(data => {
+    btn.textContent = data.active ? '🟢 Active' : '🔴 Inactive';
+    btn.classList.toggle('active', data.active);
+  });
+}
+</script>
+{% endblock %}

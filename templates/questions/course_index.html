@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ course.name }} — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a> ›
+    <span>{{ course.name }}</span>
+  </nav>
+
+  <div class="page-header">
+    {% if course.icon %}
+      <img src="{{ course.icon.url }}" alt="{{ course.name }}" class="course-icon-lg">
+    {% endif %}
+    <div>
+      <h1>{{ course.name }}</h1>
+      <p class="subtitle">{{ topics.count }} topic{{ topics.count|pluralize }} available</p>
+    </div>
+  </div>
+
+  <div class="topics-list">
+    {% for topic in topics %}
+    <div class="topic-card">
+      <a href="{% url 'topic_index' course.slug topic.slug %}">
+        <h2>{{ topic.name }}</h2>
+        <span class="subtopic-count">{{ topic.subtopics.count }} sub-topics</span>
+      </a>
+      <div class="subtopics-preview">
+        {% for subtopic in topic.subtopics.all|slice:":6" %}
+        <a href="{% url 'subtopic_index' course.slug topic.slug subtopic.slug %}" class="subtopic-chip">
+          {{ subtopic.name }}
+        </a>
+        {% endfor %}
+        {% if topic.subtopics.count > 6 %}
+        <a href="{% url 'topic_index' course.slug topic.slug %}" class="subtopic-chip more">
+          +{{ topic.subtopics.count|add:"-6" }} more
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <p class="empty-state">No topics in this course yet.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

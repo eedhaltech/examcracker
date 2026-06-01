@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us — MCQ Platform{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:760px;">
+  <div class="dashboard-header">
+    <h1>Contact Us</h1>
+    <p>Send us a message and we’ll get back to you.</p>
+  </div>
+
+  <div class="card">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="{{ form.name.id_for_label }}">Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="field-error">{{ form.name.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="field-error">{{ form.email.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.subject.id_for_label }}">Subject</label>
+        {{ form.subject }}
+        {% if form.subject.errors %}<div class="field-error">{{ form.subject.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.message.id_for_label }}">Message</label>
+        {{ form.message }}
+        {% if form.message.errors %}<div class="field-error">{{ form.message.errors }}</div>{% endif %}
+      </div>
+
+      <button type="submit" class="btn-primary">Send</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

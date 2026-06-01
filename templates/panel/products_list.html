@@ -1,0 +1,39 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Products{% endblock %}
+{% block page_title %}Products & Affiliate Links{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Products</h3>
+    <a href="{% url 'panel_product_add' %}" class="btn-primary-sm">+ Add Product</a>
+  </div>
+  <table class="panel-table">
+    <thead>
+      <tr><th>Title</th><th>Type</th><th>Price</th><th>Badge</th><th>Active</th><th>Order</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr>
+        <td><strong>{{ p.title }}</strong></td>
+        <td>{{ p.get_product_type_display }}</td>
+        <td>{{ p.price_display|default:"—" }}</td>
+        <td>{{ p.badge|default:"—" }}</td>
+        <td>{% if p.is_active %}<span class="badge-yes">Active</span>{% else %}<span class="badge-no">Off</span>{% endif %}</td>
+        <td>{{ p.order }}</td>
+        <td class="actions-cell">
+          <a href="{% url 'panel_product_edit' p.id %}" class="btn-sm">Edit</a>
+          <form method="post" action="{% url 'panel_product_delete' p.id %}" style="display:inline"
+                data-confirm="Delete this product?">
+            {% csrf_token %}
+            <button class="btn-danger-sm">Del</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="empty">No products yet. <a href="{% url 'panel_product_add' %}">Add one →</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

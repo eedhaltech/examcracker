@@ -1,0 +1,109 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Questions{% endblock %}
+{% block page_title %}Questions{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Questions</h3>
+    <div style="display:flex;gap:.5rem;">
+      <a href="{% url 'panel_question_add' %}" class="btn-primary-sm">+ Add Question</a>
+      <a href="{% url 'panel_csv_import' %}" class="btn-outline">⬆ Import CSV</a>
+    </div>
+  </div>
+
+  <form method="get" class="filter-bar-panel" id="q-filter-form">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search question text…" class="panel-input">
+
+    <!-- Syllabus filter -->
+    <select name="syllabus" class="panel-select" id="ql-syllabus"
+            onchange="filterCoursesBySyllabus(this.value); this.form.submit();">
+      <option value="">All Syllabuses</option>
+      {% for s in syllabuses %}
+      <option value="{{ s.id }}" {% if syllabus_id == s.id|stringformat:"s" %}selected{% endif %}>
+        {{ s.name }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <!-- Course filter (filtered by syllabus if selected) -->
+    <select name="course" class="panel-select" id="ql-course">
+      <option value="">All Courses</option>
+      {% for c in courses %}
+      <option value="{{ c.id }}" {% if course_id == c.id|stringformat:"s" %}selected{% endif %}>
+        {{ c.name }}{% if c.syllabus %} ({{ c.syllabus.name }}){% endif %}
+      </option>
+      {% endfor %}
+    </select>
+
+    <select name="level" class="panel-select">
+      <option value="">All Levels</option>
+      {% for l in "12345" %}
+      <option value="{{ l }}" {% if level == l %}selected{% endif %}>Level {{ l }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn-primary-sm">Filter</button>
+    {% if q or course_id or syllabus_id or level %}
+    <a href="{% url 'panel_questions' %}" class="btn-outline">Clear</a>
+    {% endif %}
+  </form>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Question</th>
+        <th>Syllabus</th>
+        <th>Course → Sub-topic</th>
+        <th>Level</th>
+        <th>Difficulty</th>
+        <th>% Correct</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for q in page_obj %}
+      <tr>
+        <td class="muted">{{ q.id }}</td>
+        <td>{{ q.body|truncatechars:60 }}</td>
+        <td>
+          {% if q.subtopic.topic.course.syllabus %}
+          <span class="badge-syllabus">{{ q.subtopic.topic.course.syllabus.name }}</span>
+          {% else %}
+          <span class="muted">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <span style="color:var(--text-muted);font-size:.8rem;">{{ q.subtopic.topic.course.name }} /</span>
+          {{ q.subtopic.name }}
+        </td>
+        <td><span class="level-badge-sm">L{{ q.level }}</span></td>
+        <td>{{ q.get_difficulty_display }}</td>
+        <td>{{ q.percent_correct }}%</td>
+        <td class="actions-cell">
+          <a href="{% url 'panel_question_edit' q.id %}" class="btn-sm">Edit</a>
+          <form method="post" action="{% url 'panel_question_delete' q.id %}" style="display:inline"
+                data-confirm="Delete this question?">
+            {% csrf_token %}
+            <button class="btn-danger-sm">Del</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="empty">No questions found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'panel/includes/pagination.html' %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// When syllabus changes, reload page to filter courses
+function filterCoursesBySyllabus(syllabusId) {
+  // Form will submit via onchange — nothing extra needed
+}
+</script>
+{% endblock %}

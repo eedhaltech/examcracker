@@ -1,0 +1,46 @@
+<div class="product-card">
+  {% if p.badge %}
+  <div class="product-badge">{{ p.badge }}</div>
+  {% endif %}
+
+  {% if p.image %}
+  <img src="{{ p.image.url }}" alt="{{ p.title }}" class="product-img">
+  {% else %}
+  <div class="product-img-placeholder">
+    {% if p.product_type == 'book' %}📖
+    {% elif p.product_type == 'affiliate' %}🔗
+    {% elif p.product_type == 'course' %}🎓
+    {% else %}🛠{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="product-body">
+    <div class="product-type-tag">{{ p.get_product_type_display }}</div>
+    <h3 class="product-title">{{ p.title }}</h3>
+    {% if p.description %}
+    <p class="product-desc">{{ p.description|truncatechars:120 }}</p>
+    {% endif %}
+    <div class="product-footer">
+      {% if p.price_display %}
+      <span class="product-price">{{ p.price_display }}</span>
+      {% endif %}
+      {% if p.affiliate_url %}
+        <a href="{{ p.affiliate_url }}" target="_blank" rel="nofollow noopener sponsored"
+           class="btn-primary product-btn">
+          {% if p.product_type == 'book' %}Buy Now
+          {% elif p.product_type == 'affiliate' %}Get It
+          {% elif p.product_type == 'course' %}Enroll
+          {% else %}Visit →{% endif %}
+        </a>
+      {% endif %}
+
+      {% if p.download_file %}
+        <a href="{{ p.download_file.url }}" target="_blank" rel="noopener"
+           class="btn-secondary-sm product-btn"
+           {% if not p.affiliate_url %}style="margin-left:0;"{% endif %}>
+          Download
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>

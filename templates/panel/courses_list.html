@@ -1,0 +1,68 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Courses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+
+{% block content %}
+
+<div class="drill-topbar">
+  <div class="drill-topbar-left">
+    <a href="{% url 'panel_courses' %}" class="panel-btn panel-btn--outline">🗂 Syllabuses</a>
+    <form method="get" style="display:flex;align-items:center;">
+      <select name="syllabus" class="panel-input" style="min-width:170px;" onchange="this.form.submit()">
+        <option value="">All Syllabuses</option>
+        {% for s in syllabuses %}
+        <option value="{{ s.id }}" {% if selected_syllabus == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+  <a href="{% url 'panel_course_add' %}" class="panel-btn panel-btn--primary">＋ Add Course</a>
+</div>
+
+{% for group in groups %}
+<div class="drill-section">
+  <div class="drill-section-header">
+    <span class="drill-section-icon">🗂</span>
+    <span class="drill-section-title">{% if group.syllabus %}{{ group.syllabus.name }}{% else %}No Syllabus{% endif %}</span>
+    <span class="drill-section-count">{{ group.courses|length }} course{{ group.courses|length|pluralize }}</span>
+  </div>
+
+  {% if group.courses %}
+  <div class="drill-grid">
+    {% for course in group.courses %}
+    <div class="drill-card">
+      <a href="{% url 'panel_course_detail' course.id %}" class="drill-card-link">
+        <div class="drill-card-icon">
+          {% if course.icon %}<img src="{{ course.icon.url }}" alt="">{% else %}📚{% endif %}
+        </div>
+        <div class="drill-card-body">
+          <div class="drill-card-name">{{ course.name }}</div>
+          <div class="drill-card-meta">{{ course.topics.count }} topic{{ course.topics.count|pluralize }}</div>
+        </div>
+        <span class="drill-card-arrow">›</span>
+      </a>
+      <div class="drill-card-actions">
+        <a href="{% url 'panel_course_edit' course.id %}" class="panel-btn panel-btn--sm">Edit</a>
+        <form method="post" action="{% url 'panel_course_delete' course.id %}" style="display:inline"
+              data-confirm="Delete '{{ course.name }}' and ALL its questions?">
+          {% csrf_token %}
+          <button class="panel-btn panel-btn--sm panel-btn--danger">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="drill-empty">
+    No courses in this syllabus yet.
+    <a href="{% url 'panel_course_add' %}">Add one →</a>
+  </div>
+  {% endif %}
+</div>
+{% empty %}
+<div class="drill-empty" style="margin-top:2rem;">
+  No courses yet. <a href="{% url 'panel_course_add' %}">Add the first one →</a>
+</div>
+{% endfor %}
+
+{% endblock %}

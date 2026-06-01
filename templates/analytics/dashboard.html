@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load ad_tags %}
+
+{% block title %}My Dashboard — MCQ Platform{% endblock %}
+{% block meta_description %}Track your MCQ quiz performance, view past attempts, accuracy stats and weak areas.{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="dashboard-header">
+    <div>
+      <h1>My Dashboard</h1>
+      <p>Track your performance and improve every day.</p>
+    </div>
+    <a href="{% url 'home' %}" class="btn-primary">Start a Quiz →</a>
+  </div>
+
+  <!-- Quick stats (everyone sees these) -->
+  <div class="dash-quick-stats">
+    <div class="qs-card">
+      <div class="qs-icon">📝</div>
+      <div class="qs-val">{{ overall.total|default:0 }}</div>
+      <div class="qs-label">Total Quizzes</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-icon">🎯</div>
+      <div class="qs-val">{{ overall.avg_score|floatformat:1|default:"—" }}</div>
+      <div class="qs-label">Avg Score</div>
+    </div>
+    <div class="qs-card">
+      <div class="qs-icon">🏆</div>
+      <div class="qs-val">{{ overall.best_score|floatformat:1|default:"—" }}</div>
+      <div class="qs-label">Best Score</div>
+    </div>
+    <div class="qs-card {% if streak >= 3 %}qs-card--hot{% endif %}">
+      <div class="qs-icon">🔥</div>
+      <div class="qs-val">{{ streak }}</div>
+      <div class="qs-label">Day Streak</div>
+    </div>
+  </div>
+
+  {% if is_member %}
+  <!-- Full analytics for members -->
+  <div class="dashboard-layout">
+
+    <aside class="dash-sidebar-left">
+      {% render_ad "display_sidebar" %}
+      <div class="card">
+        <div class="card-title">📅 Recent Topics</div>
+        <div class="card-subtitle">Last 10 days</div>
+        {% for cat in frequent_categories %}
+        <div class="freq-item">
+          <div class="freq-name">{{ cat.subtopic__name }}</div>
+          <div class="freq-meta">
+            <span>{{ cat.attempt_count }} attempt{{ cat.attempt_count|pluralize }}</span>
+            <span>Avg: {{ cat.avg_score|floatformat:1 }}</span>
+          </div>
+        </div>
+        {% empty %}
+        <p class="empty-state" style="padding:.5rem 0;">No activity yet.</p>
+        {% endfor %}
+      </div>
+    </aside>
+
+    <main class="dash-main">
+      <div class="card coming-soon"><h3>📅 Exam Countdown</h3><span class="coming-soon-label">Coming Soon</span></div>
+      <div class="card coming-soon"><h3>📈 Performance Trends</h3><span class="coming-soon-label">Coming Soon</span></div>
+    </main>
+
+    <aside class="dash-sidebar-right">
+      <div class="card donut-card">
+        <div class="card-title">% Correct by Topic</div>
+        <div class="card-subtitle">Top 5 most attempted</div>
+        {% if donut_data %}
+        <canvas id="donutChart" style="max-width:220px;margin:0 auto;"></canvas>
+        {% else %}
+        <p class="empty-state">Complete quizzes to see stats.</p>
+        {% endif %}
+      </div>
+      {% if weak_areas %}
+      <div class="card">
+        <div class="card-title">⚠️ Weak Areas</div>
+        <div class="card-subtitle">Accuracy below 40%</div>
+        {% for area in weak_areas %}
+        <div class="weak-item"><span>{{ area.label }}</span><span class="weak-pct">{{ area.value }}%</span></div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% render_ad "display_sidebar" %}
+    </aside>
+  </div>
+
+  {% else %}
+  <!-- Non-member: show blur CTA -->
+  <div class="dashboard-blur-wrapper" style="margin-bottom:2rem;">
+    <div class="dashboard-blur-content" aria-hidden="true">
+      <div class="blur-placeholder-grid">
+        <div class="blur-card"></div><div class="blur-card tall"></div>
+        <div class="blur-card"></div><div class="blur-card"></div>
+        <div class="blur-card tall"></div><div class="blur-card"></div>
+      </div>
+    </div>
+    <div class="blur-overlay">
+      <div class="blur-cta">
+        <div class="lock-icon">🔒</div>
+        <h2>Unlock Full Analytics</h2>
+        <p>Track performance, spot weak areas, and improve faster.</p>
+        <a href="{% url 'subscribe' %}" class="btn-primary btn-lg">View Plans — from ₹10/month</a>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Past Purchase / Membership History (all users) -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-head">
+      <h2>💳 Membership History</h2>
+      <span class="card-meta">Your past subscriptions</span>
+    </div>
+    {% if subscriptions %}
+      <div class="history-table-wrap">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in subscriptions %}
+            <tr>
+              <td><strong>{{ s.get_plan_display }}</strong></td>
+              <td class="muted-cell">{{ s.start_date|date:"d M Y" }}</td>
+              <td class="muted-cell">{{ s.end_date|date:"d M Y" }}</td>
+              <td>
+                {% if s.is_active %}
+                  <span class="badge-yes">Active</span>
+                {% else %}
+                  <span class="badge-no">Expired</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state" style="padding:1.25rem;">
+        No purchases yet. <a href="{% url 'subscribe' %}">View plans →</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Past Attempt History (all users) -->
+  <div class="card">
+    <div class="card-head">
+      <h2>📋 Quiz History</h2>
+      <span class="card-meta">{{ overall.total|default:0 }} total attempts</span>
+    </div>
+
+    {% if page_obj.object_list %}
+    <div class="history-table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Sub-topic</th>
+            <th>Course</th>
+            <th>Score</th>
+            <th>Level</th>
+            <th>Correct</th>
+            <th>Time</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in page_obj %}
+          <tr>
+            <td><strong>{{ attempt.subtopic.name }}</strong></td>
+            <td class="muted-cell">{{ attempt.subtopic.topic.course.name }}</td>
+            <td>
+              <span class="score-pill {% if attempt.score >= attempt.max_score|add:0 %}score-perfect{% elif attempt.score > 0 %}score-good{% else %}score-zero{% endif %}">
+                {{ attempt.score|floatformat:0 }}/{{ attempt.max_score }}
+              </span>
+            </td>
+            <td><span class="level-dot">L{{ attempt.level_at_attempt }}</span></td>
+            <td>{{ attempt.correct_count }}/{{ attempt.max_score }}</td>
+            <td class="muted-cell">
+              {% with m=attempt.time_taken_seconds|divisibleby:60 %}
+              {{ attempt.time_taken_seconds|floatformat:0 }}s
+              {% endwith %}
+            </td>
+            <td class="muted-cell">{{ attempt.started_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'quiz_results' attempt.id %}" class="btn-sm-link">Review →</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="history-pagination">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">← Prev</a>
+      {% endif %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn-secondary">Next →</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state" style="padding:2rem;">
+      You haven't completed any quizzes yet.
+      <a href="{% url 'home' %}">Start your first quiz →</a>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if is_member and donut_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const donutData = {{ donut_data_json|safe }};
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: donutData.map(d => d.label),
+    datasets: [{
+      data: donutData.map(d => d.value),
+      backgroundColor: ['#2563EB','#10b981','#f59e0b','#ef4444','#8b5cf6'],
+      borderWidth: 3, borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom' },
+      tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}% correct` } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}

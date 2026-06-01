@@ -1,0 +1,55 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Users{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Users</h3>
+    <a href="{% url 'panel_membership_grant' %}" class="btn-primary-sm">+ Grant Membership</a>
+  </div>
+
+  <!-- Filters -->
+  <form method="get" class="filter-bar-panel">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search email…" class="panel-input">
+    <select name="filter" class="panel-select" onchange="this.form.submit()">
+      <option value="all"     {% if filter_type == 'all' %}selected{% endif %}>All Users</option>
+      <option value="members" {% if filter_type == 'members' %}selected{% endif %}>Members Only</option>
+      <option value="free"    {% if filter_type == 'free' %}selected{% endif %}>Free Only</option>
+      <option value="staff"   {% if filter_type == 'staff' %}selected{% endif %}>Staff Only</option>
+    </select>
+    <button type="submit" class="btn-primary-sm">Search</button>
+  </form>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Email</th><th>Joined</th><th>Status</th>
+        <th>Expires</th><th>Staff</th><th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in page_obj %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{{ u.date_joined|date:"d M Y" }}</td>
+        <td>
+          {% if u.profile.membership_active %}
+          <span class="badge-yes">⭐ Member</span>
+          {% else %}
+          <span class="badge-no">Free</span>
+          {% endif %}
+        </td>
+        <td>{{ u.profile.membership_expires|default:"—" }}</td>
+        <td>{% if u.is_staff %}<span class="badge-staff-sm">Staff</span>{% else %}—{% endif %}</td>
+        <td><a href="{% url 'panel_user_detail' u.id %}" class="btn-sm">Manage</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty">No users found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% include 'panel/includes/pagination.html' %}
+</div>
+{% endblock %}

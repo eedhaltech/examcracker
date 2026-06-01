@@ -1,0 +1,74 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Comments{% endblock %}
+{% block page_title %}User Reviews & Comments{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Reviews</h3>
+    <div style="display:flex;gap:.5rem;">
+      <a href="?status=" class="btn-sm {% if not status %}active-filter{% endif %}">All</a>
+      <a href="?status=pending"  class="btn-sm {% if status == 'pending' %}active-filter{% endif %}">⏳ Pending</a>
+      <a href="?status=approved" class="btn-sm {% if status == 'approved' %}active-filter{% endif %}">✅ Approved</a>
+      <a href="?status=rejected" class="btn-sm {% if status == 'rejected' %}active-filter{% endif %}">❌ Rejected</a>
+    </div>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr><th>User</th><th>Rating</th><th>Comment</th><th>Status</th><th>Featured</th><th>Date</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for c in page_obj %}
+      <tr>
+        <td>{{ c.name }}<br><span class="muted" style="font-size:.75rem;">{{ c.email }}</span></td>
+        <td>{{ c.rating }}★</td>
+        <td style="max-width:280px;">{{ c.body|truncatechars:80 }}</td>
+        <td>
+          {% if c.status == 'approved' %}<span class="badge-yes">Approved</span>
+          {% elif c.status == 'pending' %}<span style="background:#fef3c7;color:#92400e;padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:700;">Pending</span>
+          {% else %}<span class="badge-no">Rejected</span>{% endif %}
+        </td>
+        <td>{% if c.is_featured %}⭐{% else %}—{% endif %}</td>
+        <td class="muted">{{ c.created_at|date:"d M Y" }}</td>
+        <td>
+          <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+            {% if c.status != 'approved' %}
+            <form method="post" action="{% url 'panel_comment_action' c.id %}" style="display:inline">
+              {% csrf_token %}<input type="hidden" name="action" value="approve">
+              <button class="btn-sm" style="color:var(--success);">✅ Approve</button>
+            </form>
+            {% endif %}
+            {% if not c.is_featured %}
+            <form method="post" action="{% url 'panel_comment_action' c.id %}" style="display:inline">
+              {% csrf_token %}<input type="hidden" name="action" value="feature">
+              <button class="btn-sm">⭐ Feature</button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'panel_comment_action' c.id %}" style="display:inline">
+              {% csrf_token %}<input type="hidden" name="action" value="unfeature">
+              <button class="btn-sm">Unfeature</button>
+            </form>
+            {% endif %}
+            {% if c.status != 'rejected' %}
+            <form method="post" action="{% url 'panel_comment_action' c.id %}" style="display:inline">
+              {% csrf_token %}<input type="hidden" name="action" value="reject">
+              <button class="btn-danger-sm">Reject</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'panel_comment_action' c.id %}" style="display:inline"
+                  data-confirm="Delete this comment?">
+              {% csrf_token %}<input type="hidden" name="action" value="delete">
+              <button class="btn-danger-sm">Del</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="empty">No comments yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include 'panel/includes/pagination.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stat cards -->
+<div class="stat-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon">👥</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_users }}</div>
+      <div class="stat-label">Total Users</div>
+      <div class="stat-sub">+{{ stats.new_users_week }} this week</div>
+    </div>
+  </div>
+  <div class="stat-card gold">
+    <div class="stat-icon">⭐</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_members }}</div>
+      <div class="stat-label">Active Members</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">❓</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_questions }}</div>
+      <div class="stat-label">Questions</div>
+    </div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-icon">📝</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_attempts }}</div>
+      <div class="stat-label">Total Attempts</div>
+      <div class="stat-sub">{{ stats.attempts_today }} today</div>
+    </div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-icon">📚</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.total_courses }}</div>
+      <div class="stat-label">Courses</div>
+    </div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-icon">📢</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ stats.active_ads }}</div>
+      <div class="stat-label">Active Ads</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts + tables row -->
+<div class="dash-grid">
+
+  <!-- Attempts chart -->
+  <div class="panel-card">
+    <div class="card-head">
+      <h3>Attempts — Last 7 Days</h3>
+    </div>
+    <canvas id="attemptsChart" height="120"></canvas>
+  </div>
+
+  <!-- Top subtopics -->
+  <div class="panel-card">
+    <div class="card-head">
+      <h3>Top Sub-topics</h3>
+    </div>
+    <table class="panel-table">
+      <thead><tr><th>Sub-topic</th><th>Attempts</th><th>Avg Score</th></tr></thead>
+      <tbody>
+        {% for row in top_subtopics %}
+        <tr>
+          <td>{{ row.subtopic__name }}</td>
+          <td><strong>{{ row.count }}</strong></td>
+          <td>{{ row.avg|floatformat:1 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty">No data yet</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Recent users -->
+<div class="panel-card">
+  <div class="card-head">
+    <h3>Recent Signups</h3>
+    <a href="{% url 'panel_users' %}" class="btn-sm">View all →</a>
+  </div>
+  <table class="panel-table">
+    <thead><tr><th>Email</th><th>Joined</th><th>Member</th><th>Action</th></tr></thead>
+    <tbody>
+      {% for u in recent_users %}
+      <tr>
+        <td>{{ u.email }}</td>
+        <td>{{ u.date_joined|date:"d M Y" }}</td>
+        <td>
+          {% if u.profile.membership_active %}
+          <span class="badge-yes">✓ Member</span>
+          {% else %}
+          <span class="badge-no">Free</span>
+          {% endif %}
+        </td>
+        <td><a href="{% url 'panel_user_detail' u.id %}" class="btn-sm">Manage</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="empty">No users yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const data = {{ daily_attempts_json|safe }};
+new Chart(document.getElementById('attemptsChart'), {
+  type: 'bar',
+  data: {
+    labels: data.map(d => d.date),
+    datasets: [{
+      label: 'Attempts',
+      data: data.map(d => d.count),
+      backgroundColor: 'rgba(37,99,235,0.7)',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+  }
+});
+</script>
+{% endblock %}

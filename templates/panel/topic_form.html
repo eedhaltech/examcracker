@@ -1,0 +1,23 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Add Topic{% endblock %}
+{% block page_title %}Add Topic to {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:480px;">
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label>Topic Name *</label>
+      <input type="text" name="name" class="panel-input" required autofocus>
+    </div>
+    <div class="form-group">
+      <label>Display Order</label>
+      <input type="number" name="order" value="0" class="panel-input" min="0">
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Add Topic</button>
+      <a href="{% url 'panel_course_detail' course.id %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us & Reviews — MCQ Platform{% endblock %}
+{% block meta_description %}Share your experience with MCQ Platform. Read student reviews and ratings. Contact us for support.{% endblock %}
+{% block meta_keywords %}MCQ platform review, student feedback, contact us, quiz platform experience, exam preparation review{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Page header -->
+  <div class="contact-header">
+    <h1>Contact Us & Reviews</h1>
+    <p>We'd love to hear about your experience. Your feedback helps us improve.</p>
+  </div>
+
+  <!-- Rating summary -->
+  {% if stats.total %}
+  <div class="rating-summary card">
+    <div class="rating-big">
+      <div class="rating-number">{{ stats.avg_rating|floatformat:1 }}</div>
+      <div class="rating-stars-big">
+        {% for i in "12345" %}
+        <span class="star {% if forloop.counter <= stats.avg_rating|floatformat:0|add:0 %}filled{% endif %}">★</span>
+        {% endfor %}
+      </div>
+      <div class="rating-count">{{ stats.total }} review{{ stats.total|pluralize }}</div>
+    </div>
+    <div class="rating-breakdown">
+      {% for star, data in breakdown.items %}
+      <div class="breakdown-row">
+        <span class="breakdown-label">{{ star }}★</span>
+        <div class="breakdown-bar">
+          <div class="breakdown-fill" style="width:{{ data.pct }}%"></div>
+        </div>
+        <span class="breakdown-count">{{ data.count }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="contact-grid">
+
+    <!-- Left: Submit review form -->
+    <div class="contact-form-col">
+      <div class="card">
+        <h2>{% if user_comment %}Update Your Review{% else %}Write a Review{% endif %}</h2>
+        <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.25rem;">
+          Share your experience with MCQ Platform. Reviews are approved before publishing.
+        </p>
+
+        <!-- novalidate disables browser pop-up validation bubbles; we use site alerts/messages instead -->
+        <form method="post" action="{% url 'contact' %}" novalidate>
+          {% csrf_token %}
+
+          <!-- Star rating picker -->
+          <div class="form-group">
+            <label>Your Rating</label>
+            <div class="star-picker" id="star-picker">
+              {% for i in "54321" %}
+              <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}"
+                     {% if user_comment and user_comment.rating == i|add:0 %}checked
+                     {% elif not user_comment and i == '5' %}checked{% endif %}>
+              <label for="star{{ i }}" title="{{ i }} stars">★</label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="body">Your Experience *</label>
+            <textarea id="body" name="body" rows="5"
+                      class="form-textarea"
+                      placeholder="Tell us how MCQ Platform helped you prepare for your exams…"
+                      maxlength="1000">{{ user_comment.body|default:'' }}</textarea>
+            <span class="char-count" id="char-count">0 / 1000</span>
+          </div>
+
+          <button type="submit" class="btn-primary btn-full">
+            {% if user_comment %}Update Review{% else %}Submit Review{% endif %}
+          </button>
+
+          {% if user_comment %}
+          <p style="font-size:.78rem;color:var(--text-muted);margin-top:.75rem;text-align:center;">
+            Status:
+            {% if user_comment.status == 'approved' %}<span style="color:var(--success);">✅ Approved</span>
+            {% elif user_comment.status == 'pending' %}<span style="color:var(--warning);">⏳ Pending review</span>
+            {% else %}<span style="color:var(--danger);">❌ Not approved</span>{% endif %}
+          </p>
+          {% endif %}
+        </form>
+      </div>
+
+      <!-- Contact info -->
+      <div class="card contact-info-card">
+        <h3>📬 Get in Touch</h3>
+        <div class="contact-info-row">
+          <span>📧</span>
+          <span>support@mcqplatform.com</span>
+        </div>
+        <div class="contact-info-row">
+          <span>⏰</span>
+          <span>Mon–Sat, 9am–6pm IST</span>
+        </div>
+        <div class="contact-info-row">
+          <span>💬</span>
+          <span>Response within 24 hours</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Approved comments -->
+    <div class="comments-col">
+      <h2>What Students Say</h2>
+
+      {% if featured_comments %}
+      <div class="featured-comments">
+        {% for comment in featured_comments %}
+        <div class="comment-card featured">
+          <div class="comment-header">
+            <div class="comment-avatar">{{ comment.name|first|upper }}</div>
+            <div>
+              <div class="comment-name">{{ comment.name }} <span class="featured-tag">⭐ Featured</span></div>
+              <div class="comment-stars">
+                {% for i in comment.stars_range %}★{% endfor %}{% for i in comment.empty_stars_range %}☆{% endfor %}
+              </div>
+            </div>
+            <div class="comment-date">{{ comment.created_at|date:"d M Y" }}</div>
+          </div>
+          <p class="comment-body">{{ comment.body }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="all-comments">
+        {% for comment in approved_comments %}
+        {% if not comment.is_featured %}
+        <div class="comment-card">
+          <div class="comment-header">
+            <div class="comment-avatar">{{ comment.name|first|upper }}</div>
+            <div>
+              <div class="comment-name">{{ comment.name }}</div>
+              <div class="comment-stars">
+                {% for i in comment.stars_range %}★{% endfor %}{% for i in comment.empty_stars_range %}☆{% endfor %}
+              </div>
+            </div>
+            <div class="comment-date">{{ comment.created_at|date:"d M Y" }}</div>
+          </div>
+          <p class="comment-body">{{ comment.body }}</p>
+        </div>
+        {% endif %}
+        {% empty %}
+        <p class="empty-state">No reviews yet. Be the first to share your experience!</p>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Character counter
+const textarea = document.getElementById('body');
+const counter  = document.getElementById('char-count');
+if (textarea && counter) {
+  const update = () => counter.textContent = `${textarea.value.length} / 1000`;
+  textarea.addEventListener('input', update);
+  update();
+}
+</script>
+{% endblock %}

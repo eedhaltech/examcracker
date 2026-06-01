@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Staff Panel{% endblock %} — MCQ Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="panel-body">
+
+  <!-- Sidebar -->
+  <aside class="panel-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a href="{% url 'panel_dashboard' %}">
+        <span class="brand-icon">⚙️</span>
+        <span class="brand-text">Staff Panel</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'panel_dashboard' %}"
+         class="nav-item {% if section == 'dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="{% url 'panel_users' %}"
+         class="nav-item {% if section == 'users' %}active{% endif %}">
+        <span class="nav-icon">👥</span> Users
+      </a>
+      <a href="{% url 'panel_questions' %}"
+         class="nav-item {% if section == 'questions' %}active{% endif %}">
+        <span class="nav-icon">❓</span> Questions
+      </a>
+      <a href="{% url 'panel_courses' %}"
+         class="nav-item {% if section == 'courses' %}active{% endif %}">
+        <span class="nav-icon">📚</span> Courses
+      </a>
+      <a href="{% url 'panel_memberships' %}"
+         class="nav-item {% if section == 'memberships' %}active{% endif %}">
+        <span class="nav-icon">⭐</span> Memberships
+      </a>
+      <a href="{% url 'panel_razorpay_settings' %}"
+         class="nav-item {% if section == 'razorpay' %}active{% endif %}">
+        <span class="nav-icon">₹</span> Razorpay Settings
+      </a>
+      <a href="{% url 'panel_ads' %}"
+         class="nav-item {% if section == 'ads' %}active{% endif %}">
+        <span class="nav-icon">📢</span> Ads
+      </a>
+      <a href="{% url 'panel_level_config' %}"
+         class="nav-item {% if section == 'levels' %}active{% endif %}">
+        <span class="nav-icon">🔒</span> Level Access
+      </a>
+      <a href="{% url 'panel_products' %}"
+         class="nav-item {% if section == 'products' %}active{% endif %}">
+        <span class="nav-icon">📦</span> Products
+      </a>
+      <a href="{% url 'panel_comments' %}"
+         class="nav-item {% if section == 'comments' %}active{% endif %}">
+        <span class="nav-icon">💬</span> Comments
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'home' %}" class="nav-item">
+        <span class="nav-icon">🌐</span> View Site
+      </a>
+      <a href="{% url 'account_logout' %}" class="nav-item danger">
+        <span class="nav-icon">🚪</span> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="panel-main">
+    <header class="panel-topbar">
+      <button class="sidebar-toggle" id="sidebar-toggle">☰</button>
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+      <div class="topbar-user">
+        <span>{{ request.user.email }}</span>
+        {% if request.user.is_superuser %}
+        <span class="badge-super">Superuser</span>
+        {% else %}
+        <span class="badge-staff">Staff</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- In-page confirmation bar (replaces browser confirm()) -->
+    <div id="confirm-bar" class="panel-confirm-bar" style="display:none;">
+      <div class="panel-confirm-inner">
+        <div class="panel-confirm-text" id="confirm-text"></div>
+        <div class="panel-confirm-actions">
+          <button type="button" class="btn-outline" id="confirm-cancel">Cancel</button>
+          <button type="button" class="btn-primary-sm" id="confirm-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    {% if messages %}
+    <div class="panel-messages">
+      {% for message in messages %}
+      <div class="pmsg pmsg-{{ message.tags }}">
+        {{ message }}
+        <button onclick="this.parentElement.remove()">×</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="panel-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+  <script>
+  const toggle = document.getElementById('sidebar-toggle');
+  const sidebar = document.getElementById('sidebar');
+  toggle?.addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+
+  // Confirm bar for forms with data-confirm="..."
+  let __confirmCallback = null;
+  function showPanelConfirm(message, onConfirm) {
+    const bar = document.getElementById('confirm-bar');
+    const txt = document.getElementById('confirm-text');
+    const ok  = document.getElementById('confirm-ok');
+    const cancel = document.getElementById('confirm-cancel');
+    if (!bar || !txt || !ok || !cancel) return;
+    __confirmCallback = onConfirm;
+    txt.textContent = message;
+    bar.style.display = 'block';
+    cancel.focus();
+  }
+  (function wirePanelConfirm(){
+    const bar = document.getElementById('confirm-bar');
+    const ok  = document.getElementById('confirm-ok');
+    const cancel = document.getElementById('confirm-cancel');
+    if (!bar || !ok || !cancel) return;
+    function close() { bar.style.display = 'none'; __confirmCallback = null; }
+    cancel.addEventListener('click', close);
+    ok.addEventListener('click', () => { const cb = __confirmCallback; close(); if (typeof cb === 'function') cb(); });
+
+    document.addEventListener('submit', function(e) {
+      const form = e.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const msg = form.getAttribute('data-confirm');
+      if (!msg) return;
+      if (form.getAttribute('data-confirmed') === '1') return;
+      e.preventDefault();
+      showPanelConfirm(msg, () => {
+        form.setAttribute('data-confirmed', '1');
+        form.submit();
+      });
+    }, true);
+  })();
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,4 @@
+<option value="">Select sub-topic...</option>
+{% for subtopic in subtopics %}
+<option value="{{ subtopic.id }}" data-slug="{{ subtopic.slug }}">{{ subtopic.name }}</option>
+{% endfor %}

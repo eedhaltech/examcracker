@@ -1,0 +1,198 @@
+{% extends 'panel/base_panel.html' %}
+{% load panel_tags %}
+{% block title %}{{ action }} Question{% endblock %}
+{% block page_title %}{{ action }} Question{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:860px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-grid-2">
+      <div class="form-group full">
+        <label>Question Body *</label>
+        <textarea name="body" rows="4" class="panel-textarea" required>{{ question.body|default:'' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Syllabus</label>
+        <select name="syllabus_sel" id="syllabus-sel" class="panel-select" onchange="loadCourses(this.value)">
+          <option value="">Select syllabus…</option>
+          {% for s in syllabuses %}
+          <option value="{{ s.id }}"
+            {% if question and question.subtopic.topic.course.syllabus_id == s.id %}selected{% endif %}>
+            {{ s.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Course</label>
+        <select name="course_sel" id="course-sel" class="panel-select" onchange="loadTopics(this.value)">
+          <option value="">Select course…</option>
+          {% if question %}
+          <option value="{{ question.subtopic.topic.course.id }}" selected>{{ question.subtopic.topic.course.name }}</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Sub-topic *</label>
+        <select name="subtopic" id="subtopic-sel" class="panel-select" required>
+          <option value="">Select sub-topic…</option>
+          {% if question %}
+          <option value="{{ question.subtopic.id }}" selected>{{ question.subtopic.name }}</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Level (1–5)</label>
+        <select name="level" class="panel-select">
+          {% for l in "12345" %}
+          <option value="{{ l }}" {% if question.level|default:1 == l|add:0 %}selected{% endif %}>Level {{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Difficulty</label>
+        <select name="difficulty" class="panel-select">
+          <option value="easy"   {% if question.difficulty == 'easy' %}selected{% endif %}>Easy</option>
+          <option value="medium" {% if question.difficulty == 'medium' or not question %}selected{% endif %}>Medium</option>
+          <option value="hard"   {% if question.difficulty == 'hard' %}selected{% endif %}>Hard</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Question Type</label>
+        <select name="question_type" class="panel-select">
+          <option value="theory"       {% if question.question_type == 'theory' or not question %}selected{% endif %}>Theory</option>
+          <option value="image"        {% if question.question_type == 'image' %}selected{% endif %}>Image</option>
+          <option value="theory_image" {% if question.question_type == 'theory_image' %}selected{% endif %}>Theory + Image</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Question Image (optional)</label>
+        <input type="file" name="image" accept="image/*" class="panel-input">
+        {% if question.image %}<p class="hint">Current: {{ question.image.name }}</p>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label>Correct Answer</label>
+        <select name="correct_option" class="panel-select">
+          {% for l in "ABCD" %}
+          <option value="{{ l }}" {% if correct_label == l %}selected{% endif %}>Option {{ l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Options -->
+    <div class="options-form-grid">
+      {% for l in "ABCD" %}
+      <div class="form-group">
+        <label>Option {{ l }} {% if l == 'A' or l == 'B' %}*{% endif %}</label>
+        <input type="text" name="option_{{ l }}"
+               class="panel-input"
+               {% if l == 'A' or l == 'B' %}required{% endif %}
+               placeholder="Option {{ l }} text">
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="form-group full">
+      <label>Explanation *</label>
+      <textarea name="explanation" rows="3" class="panel-textarea" required>{{ question.explanation|default:'' }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Save Question</button>
+      <a href="{% url 'panel_questions' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pre-populate options from existing question
+{% if question %}
+const optionValues = {
+  {% for label, opt in options.items %}'{{ label }}': '{{ opt.text|escapejs }}',
+  {% endfor %}
+};
+document.querySelectorAll('[name^="option_"]').forEach(inp => {
+  const label = inp.name.replace('option_', '');
+  if (optionValues[label]) inp.value = optionValues[label];
+});
+{% endif %}
+
+// Cascading syllabus → course → subtopic
+const selectedCourseId = "{% if question %}{{ question.subtopic.topic.course.id }}{% endif %}";
+const selectedSubtopicId = "{% if question %}{{ question.subtopic.id }}{% endif %}";
+
+const courseData = {
+  {% for c in courses %}
+  "{{ c.id }}": [
+    {% for t in c.topics.all %}
+      {% for st in t.subtopics.all %}
+      { id: "{{ st.id }}", name: "{{ st.name|escapejs }} ({{ t.name|escapejs }})" },
+      {% endfor %}
+    {% endfor %}
+  ],
+  {% endfor %}
+};
+
+const syllabusData = {
+  {% for s in syllabuses %}
+  "{{ s.id }}": [
+    {% for c in courses %}
+      {% if c.syllabus_id == s.id %}
+      { id: "{{ c.id }}", name: "{{ c.name|escapejs }}" },
+      {% endif %}
+    {% endfor %}
+  ],
+  {% endfor %}
+};
+
+function loadCourses(syllabusId) {
+  const courseSel = document.getElementById('course-sel');
+  const subtopicSel = document.getElementById('subtopic-sel');
+  courseSel.innerHTML = '<option value="">Select course…</option>';
+  subtopicSel.innerHTML = '<option value="">Select sub-topic…</option>';
+
+  const courses = syllabusData[syllabusId] || [];
+  courses.forEach(course => {
+    const opt = document.createElement('option');
+    opt.value = course.id;
+    opt.textContent = course.name;
+    if (course.id === selectedCourseId) opt.selected = true;
+    courseSel.appendChild(opt);
+  });
+
+  if (courseSel.value) loadTopics(courseSel.value);
+}
+
+function loadTopics(courseId) {
+  const sel = document.getElementById('subtopic-sel');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  if (!courseId) { sel.innerHTML = '<option value="">Select sub-topic…</option>'; return; }
+
+  const subtopics = courseData[courseId] || [];
+  sel.innerHTML = '<option value="">Select sub-topic…</option>';
+  subtopics.forEach(st => {
+    const opt = document.createElement('option');
+    opt.value = st.id;
+    opt.textContent = st.name;
+    if (st.id === selectedSubtopicId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+const syllabusSel = document.getElementById('syllabus-sel');
+if (syllabusSel.value) loadCourses(syllabusSel.value);
+</script>
+{% endblock %}

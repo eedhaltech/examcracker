@@ -1,0 +1,68 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ action }} Product{% endblock %}
+{% block page_title %}{{ action }} Product{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width:640px;">
+  <!-- novalidate disables browser pop-up validation bubbles; we use site alerts/messages instead -->
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="form-grid-2">
+      <div class="form-group full">
+        <label>Title *</label>
+        <input type="text" name="title" value="{{ product.title|default:'' }}" class="panel-input" placeholder="Product title">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select name="product_type" class="panel-select">
+          {% for val, label in type_choices %}
+          <option value="{{ val }}" {% if product.product_type == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Price Display <span class="hint">(e.g. ₹299 or Free)</span></label>
+        <input type="text" name="price_display" value="{{ product.price_display|default:'' }}" class="panel-input">
+      </div>
+      <div class="form-group full">
+        <label>Affiliate / Buy URL <span class="hint">(optional if you upload a downloadable file)</span></label>
+        <input type="url" name="affiliate_url" value="{{ product.affiliate_url|default:'' }}" class="panel-input" placeholder="https://…">
+      </div>
+      <div class="form-group full">
+        <label>Description</label>
+        <textarea name="description" rows="3" class="panel-textarea">{{ product.description|default:'' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label>Badge <span class="hint">(e.g. Bestseller)</span></label>
+        <input type="text" name="badge" value="{{ product.badge|default:'' }}" class="panel-input">
+      </div>
+      <div class="form-group">
+        <label>Display Order</label>
+        <input type="number" name="order" value="{{ product.order|default:0 }}" class="panel-input" min="0">
+      </div>
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" name="image" accept="image/*" class="panel-input">
+        {% if product.image %}<p class="hint">Current: {{ product.image.name }}</p>{% endif %}
+      </div>
+      <div class="form-group">
+        <label>Download File <span class="hint">(optional)</span></label>
+        <input type="file" name="download_file" class="panel-input">
+        {% if product.download_file %}
+          <p class="hint">Current: <a href="{{ product.download_file.url }}" target="_blank" rel="noopener">View</a></p>
+        {% endif %}
+      </div>
+      <div class="form-group" style="justify-content:flex-end;padding-top:1.5rem;">
+        <label class="toggle-label-sm">
+          <input type="checkbox" name="is_active" {% if product.is_active or not product %}checked{% endif %}>
+          Active (visible to users)
+        </label>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary-sm">💾 Save Product</button>
+      <a href="{% url 'panel_products' %}" class="btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

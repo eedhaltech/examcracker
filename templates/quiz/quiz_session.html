@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load ad_tags quiz_extras %}
+
+{% block title %}Quiz — {{ attempt.subtopic.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Top bar -->
+  <div class="quiz-topbar">
+    <div class="quiz-info">
+      <span class="quiz-title">{{ attempt.subtopic.name }}</span>
+      <span class="quiz-level">Level {{ attempt.level_at_attempt }}</span>
+    </div>
+    <div class="quiz-controls">
+      {% if is_member %}
+      <div class="timer-wrapper" id="timer-wrapper">
+        <span class="timer-label">⏱</span>
+        <span id="quiz-timer" class="timer-display">--:--</span>
+      </div>
+      {% endif %}
+      <span class="quiz-progress-text">
+        <span id="answered-count">{{ answered|length }}</span> / {{ total_questions }} answered
+      </span>
+    </div>
+  </div>
+
+  <!-- Question navigator -->
+  <div class="question-navigator" id="q-nav">
+    {% for q in questions %}
+    <a href="#q{{ q.id }}"
+       class="q-pill {% if answered|get_item:q.id %}answered{% endif %}"
+       id="pill-{{ q.id }}"
+       title="Q{{ forloop.counter }}">
+      {{ forloop.counter }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <form method="post" action="{% url 'submit_quiz' attempt.id %}" id="quiz-form">
+    {% csrf_token %}
+    <div class="quiz-layout">
+
+      <!-- Left sidebar -->
+      <aside class="quiz-sidebar-left">
+        <div class="sidebar-ad-slot">{% render_ad "display_sidebar" %}</div>
+        <div class="sidebar-topics card">
+          <h4>Topics in {{ attempt.subtopic.topic.name }}</h4>
+          {% for st in attempt.subtopic.topic.subtopics.all %}
+          <a href="{% url 'start_quiz' st.slug %}"
+             class="sidebar-topic-link {% if st.id == attempt.subtopic.id %}active{% endif %}">
+            {{ st.name }}
+          </a>
+          {% endfor %}
+        </div>
+      </aside>
+
+      <!-- Main questions -->
+      <main class="quiz-main">
+        {% for question in page_obj %}
+
+        {% if forloop.counter == 4 %}
+        <div class="closing-ad-slot">{% render_ad "closing" %}</div>
+        {% endif %}
+
+        <div class="question-block" id="q{{ question.id }}">
+          <div class="question-header">
+            <span class="q-number">Q.{{ page_obj.start_index|add:forloop.counter0 }}</span>
+            <span class="q-correct-pct" title="{{ question.total_attempted }} total attempts">
+              {{ question.percent_correct }}% correct
+            </span>
+          </div>
+
+          <div class="question-body">
+            <p>{{ question.body }}</p>
+            {% if question.image %}
+            <img src="{{ question.image.url }}" alt="Question image" class="question-img">
+            {% endif %}
+          </div>
+
+          <div class="options-list">
+            {% for option in question.options.all %}
+            <label class="option-label {% if answered|get_item:question.id == option.id %}selected{% endif %}"
+                   id="opt-{{ question.id }}-{{ option.id }}">
+              <input type="radio"
+                     name="question_{{ question.id }}"
+                     value="{{ option.id }}"
+                     {% if answered|get_item:question.id == option.id %}checked{% endif %}>
+              <span class="option-key">{{ option.label }}</span>
+              <span class="option-text">{{ option.text }}</span>
+              {% if option.image %}
+              <img src="{{ option.image.url }}" alt="Option {{ option.label }}" class="option-img">
+              {% endif %}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+        <!-- Pagination / Submit -->
+        <div class="quiz-pagination">
+          {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">← Previous</a>
+          {% else %}
+          <span></span>
+          {% endif %}
+
+          <span class="page-indicator">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="btn-primary">Next →</a>
+          {% else %}
+          <button type="submit" class="btn-primary" id="submit-btn"
+                  onclick="return confirmSubmit()">
+            ✅ Submit Quiz
+          </button>
+          {% endif %}
+        </div>
+      </main>
+
+      <!-- Right sidebar -->
+      <aside class="quiz-sidebar-right">
+        {% render_ad "display_sidebar" %}
+        <div style="margin-top:1rem;">{% render_ad "display_sidebar" %}</div>
+      </aside>
+    </div>
+  </form>
+
+  <!-- Level preference modal -->
+  {% if show_level_prompt %}
+  <div id="level-prompt-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>🎯 You've answered 20 questions!</h3>
+      <p>How would you like to continue?</p>
+      <form method="post" action="{% url 'set_level_preference' attempt.id %}">
+        {% csrf_token %}
+        <button name="preference" value="flow" class="btn-secondary">
+          Same level (go with the flow)
+        </button>
+        <button name="preference" value="improve" class="btn-primary">
+          Harder questions (improve)
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Interstitial ad -->
+  <div id="interstitial-ad" class="interstitial-overlay" style="display:none;">
+    <div class="interstitial-inner">
+      {% render_ad "overlapping" %}
+    </div>
+    <div class="interstitial-footer">
+      <span>Closes in <strong id="ad-countdown">5</strong>s</span>
+      <button onclick="closeInterstitialAd()" class="btn-skip">Skip →</button>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if is_member %}
+<script>
+const QUIZ_DURATION = {{ timer_seconds }};
+let timeRemaining = QUIZ_DURATION;
+const timerEl = document.getElementById('quiz-timer');
+
+const timerInterval = setInterval(() => {
+  timeRemaining--;
+  const mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+  const secs = (timeRemaining % 60).toString().padStart(2, '0');
+  timerEl.textContent = `${mins}:${secs}`;
+  if (timeRemaining <= 60) timerEl.classList.add('warning');
+  if (timeRemaining <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('quiz-form').submit();
+  }
+}, 1000);
+</script>
+{% endif %}
+
+<script>
+// Highlight selected option + update navigator pill
+document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const name = this.name;
+    const qId  = name.replace('question_', '');
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.closest('.option-label').classList.remove('selected');
+    });
+    this.closest('.option-label').classList.add('selected');
+    const pill = document.getElementById('pill-' + qId);
+    if (pill) pill.classList.add('answered');
+    // Update answered count
+    const total = {{ total_questions }};
+    const count = document.querySelectorAll('input[type="radio"]:checked').length;
+    const el = document.getElementById('answered-count');
+    if (el) el.textContent = count;
+  });
+});
+
+// Confirm before submit
+function confirmSubmit() {
+  const total    = {{ total_questions }};
+  const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+  const unanswered = total - answered;
+  if (unanswered > 0) {
+    if (window.showSiteConfirm) {
+      window.showSiteConfirm(`You have ${unanswered} unanswered question(s). Submit anyway?`, () => {
+        document.getElementById('quiz-form').submit();
+      });
+      return false;
+    }
+    // Fallback: submit anyway
+    return true;
+  }
+  return true;
+}
+
+// Interstitial ad
+function showInterstitialAd() {
+  const el = document.getElementById('interstitial-ad');
+  if (!el) return;
+  el.style.display = 'flex';
+  let count = 5;
+  const iv = setInterval(() => {
+    count--;
+    const cd = document.getElementById('ad-countdown');
+    if (cd) cd.textContent = count;
+    if (count <= 0) { clearInterval(iv); closeInterstitialAd(); }
+  }, 1000);
+}
+function closeInterstitialAd() {
+  const el = document.getElementById('interstitial-ad');
+  if (el) el.style.display = 'none';
+}
+
+// Show interstitial on page 1 after 4s (non-members only)
+{% if not is_member %}
+const urlPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
+if (urlPage === 1) setTimeout(showInterstitialAd, 4000);
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+[Unit]
+Description=MCQ Platform Celery Worker
+After=network.target redis.service
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/mcqplatform
+ExecStart=/var/www/mcqplatform/venv/bin/celery \
+          -A mcqplatform worker \
+          --loglevel=info \
+          --concurrency=4 \
+          --pidfile=/var/run/celery/worker.pid \
+          --logfile=/var/log/celery/worker.log
+ExecStop=/var/www/mcqplatform/venv/bin/celery \
+         -A mcqplatform control shutdown
+Restart=on-failure
+RuntimeDirectory=celery
+
+[Install]
+WantedBy=multi-user.target

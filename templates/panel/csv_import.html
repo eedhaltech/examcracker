@@ -1,0 +1,274 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Import CSV{% endblock %}
+{% block page_title %}Import Questions via CSV{% endblock %}
+
+{% block content %}
+
+<div class="import-tabs">
+  <button class="import-tab active" onclick="switchTab('simple', this)">
+    📄 Simple Format
+    <span class="tab-sub">question, answer, description</span>
+  </button>
+  <button class="import-tab" onclick="switchTab('section', this)">
+    🧩 Section Format
+    <span class="tab-sub">question, answer, section_number, description</span>
+  </button>
+  <button class="import-tab" onclick="switchTab('detailed', this)">
+    📊 Detailed Format
+    <span class="tab-sub">Full CSV with all options</span>
+  </button>
+</div>
+
+<!-- ── SIMPLE FORMAT ── -->
+<div id="tab-simple" class="tab-panel">
+  <div class="panel-card" style="max-width:680px;">
+    <div class="card-head"><h3>Simple Import</h3></div>
+    <div class="info-box" style="margin-bottom:1.25rem;">
+      <strong>CSV columns (header row required):</strong><br>
+      <code>question, answer, description</code>
+      <ul style="margin-top:.6rem;font-size:.85rem;line-height:1.8;">
+        <li><strong>question</strong> — the full question text</li>
+        <li><strong>answer</strong> — the correct answer (becomes Option A)</li>
+        <li><strong>description</strong> — explanation shown after the answer</li>
+      </ul>
+      <a href="/static/sample_simple.csv" download class="btn-outline" style="margin-top:.75rem;display:inline-block;">⬇ Download Sample</a>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="format" value="simple">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Syllabus</label>
+          <select class="panel-select" onchange="cascadeCourses(this.value,'simple-course','simple-topic','simple-subtopic')">
+            <option value="">— All Syllabuses —</option>
+            {% for s in syllabuses %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Course *</label>
+          <select id="simple-course" class="panel-select" onchange="cascadeTopics(this.value,'simple-topic','simple-subtopic')">
+            <option value="">Select course…</option>
+            {% for c in courses %}
+            <option value="{{ c.id }}">{{ c.name }}{% if c.syllabus %} ({{ c.syllabus.name }}){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Topic *</label>
+          <select id="simple-topic" class="panel-select" onchange="cascadeSubtopics(this.value,'simple-subtopic')">
+            <option value="">Select topic…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sub-topic *</label>
+          <select id="simple-subtopic" name="subtopic_id" class="panel-select" required>
+            <option value="">Select sub-topic…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <select name="level" class="panel-select">
+            {% for l in "12345" %}<option value="{{ l }}" {% if l == "1" %}selected{% endif %}>Level {{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select name="difficulty" class="panel-select">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>CSV File *</label>
+          <input type="file" name="csv_file" accept=".csv" class="panel-input" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary-sm">⬆ Import Questions</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── SECTION FORMAT ── -->
+<div id="tab-section" class="tab-panel" style="display:none;">
+  <div class="panel-card" style="max-width:680px;">
+    <div class="card-head"><h3>Section Import</h3></div>
+    <div class="info-box" style="margin-bottom:1.25rem;">
+      <strong>CSV columns:</strong> <code>question, answer, section_number, description</code>
+      <p style="margin-top:.5rem;font-size:.82rem;color:#64748b;">section_number maps to sub-topic order. Missing sub-topics are auto-created as "Section N".</p>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="format" value="section">
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label>Syllabus</label>
+          <select class="panel-select" onchange="cascadeCourses(this.value,'section-course','section-topic',null)">
+            <option value="">— All Syllabuses —</option>
+            {% for s in syllabuses %}
+            <option value="{{ s.id }}">{{ s.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Course *</label>
+          <select id="section-course" class="panel-select" onchange="cascadeTopics(this.value,'section-topic',null)">
+            <option value="">Select course…</option>
+            {% for c in courses %}
+            <option value="{{ c.id }}">{{ c.name }}{% if c.syllabus %} ({{ c.syllabus.name }}){% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Topic *</label>
+          <select id="section-topic" name="topic_id" class="panel-select" required>
+            <option value="">Select topic…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Level</label>
+          <select name="level" class="panel-select">
+            {% for l in "12345" %}<option value="{{ l }}" {% if l == "1" %}selected{% endif %}>Level {{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select name="difficulty" class="panel-select">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>CSV File *</label>
+          <input type="file" name="csv_file" accept=".csv" class="panel-input" required>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary-sm">⬆ Import Questions</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── DETAILED FORMAT ── -->
+<div id="tab-detailed" class="tab-panel" style="display:none;">
+  <div class="panel-card" style="max-width:680px;">
+    <div class="card-head"><h3>Detailed Import</h3></div>
+    <div class="info-box" style="margin-bottom:1.25rem;">
+      <strong>Required columns:</strong><br>
+      <code>syllabus, course, topic, subtopic, question_type, question, option_a, option_b, option_c, option_d, correct_answer, reason, level</code>
+      <ul style="margin-top:.6rem;font-size:.85rem;line-height:1.8;">
+        <li><code>syllabus</code> — syllabus name (must exist in the system)</li>
+        <li><code>question_type</code>: theory / image / theory_image</li>
+        <li><code>correct_answer</code>: A / B / C / D</li>
+        <li><code>level</code>: 1–5</li>
+        <li>Course / Topic / Sub-topic are created automatically if missing</li>
+        <li>Duplicate questions (same body + sub-topic) are skipped</li>
+      </ul>
+      <a href="/static/sample_questions.csv" download class="btn-outline" style="margin-top:.75rem;display:inline-block;">⬇ Download Sample</a>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="format" value="detailed">
+      <div class="form-group">
+        <label>CSV File *</label>
+        <input type="file" name="csv_file" accept=".csv" class="panel-input" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary-sm">⬆ Import Questions</button>
+        <a href="{% url 'panel_questions' %}" class="btn-outline">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.style.display='none';});
+  document.querySelectorAll('.import-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+name).style.display='block';
+  btn.classList.add('active');
+}
+
+// Embedded data: syllabus → courses → topics → subtopics
+var syllabusData = {
+  {% for s in syllabuses %}
+  "{{ s.id }}": [{% for c in s.courses.all %}"{{ c.id }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+  {% endfor %}
+};
+
+var courseData = {
+  {% for c in courses %}
+  "{{ c.id }}": {
+    name: "{{ c.name|escapejs }}",
+    syllabusId: "{{ c.syllabus_id|default:'' }}",
+    topics: [
+      {% for t in c.topics.all %}
+      { id:"{{ t.id }}", name:"{{ t.name|escapejs }}", subtopics:[
+        {% for st in t.subtopics.all %}{ id:"{{ st.id }}", name:"{{ st.name|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}
+      ]},
+      {% endfor %}
+    ]
+  },
+  {% endfor %}
+};
+
+function cascadeCourses(syllabusId, courseSelId, topicSelId, subtopicSelId) {
+  var courseSel = document.getElementById(courseSelId);
+  courseSel.innerHTML = '<option value="">Select course…</option>';
+  if (topicSelId) { var ts = document.getElementById(topicSelId); if(ts) ts.innerHTML='<option value="">Select topic…</option>'; }
+  if (subtopicSelId) { var ss = document.getElementById(subtopicSelId); if(ss) ss.innerHTML='<option value="">Select sub-topic…</option>'; }
+
+  var allowedIds = syllabusId ? (syllabusData[syllabusId] || []) : null;
+  Object.keys(courseData).forEach(function(cid) {
+    if (allowedIds && allowedIds.indexOf(cid) === -1) return;
+    var opt = document.createElement('option');
+    opt.value = cid;
+    opt.textContent = courseData[cid].name;
+    courseSel.appendChild(opt);
+  });
+}
+
+function cascadeTopics(courseId, topicSelId, subtopicSelId) {
+  var topicSel = document.getElementById(topicSelId);
+  if (!topicSel) return;
+  topicSel.innerHTML = '<option value="">Select topic…</option>';
+  if (subtopicSelId) { var ss = document.getElementById(subtopicSelId); if(ss) ss.innerHTML='<option value="">Select sub-topic…</option>'; }
+  if (!courseId || !courseData[courseId]) return;
+  courseData[courseId].topics.forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t.id; opt.textContent = t.name;
+    topicSel.appendChild(opt);
+  });
+}
+
+function cascadeSubtopics(topicId, subtopicSelId) {
+  var subtopicSel = document.getElementById(subtopicSelId);
+  if (!subtopicSel) return;
+  subtopicSel.innerHTML = '<option value="">Select sub-topic…</option>';
+  // Find topic across all courses
+  for (var cid in courseData) {
+    var topic = courseData[cid].topics.find(function(t){ return t.id === topicId; });
+    if (topic) {
+      topic.subtopics.forEach(function(st) {
+        var opt = document.createElement('option');
+        opt.value = st.id; opt.textContent = st.name;
+        subtopicSel.appendChild(opt);
+      });
+      return;
+    }
+  }
+}
+
+// Wire topic selects to cascade subtopics
+document.getElementById('simple-topic').addEventListener('change', function(){ cascadeSubtopics(this.value,'simple-subtopic'); });
+</script>
+{% endblock %}

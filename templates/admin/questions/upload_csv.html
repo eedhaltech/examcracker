@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}Upload Questions CSV{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Upload Questions CSV</h1>
+
+    <div class="help-text" style="background:#f8f9fa;padding:1rem;border-radius:4px;margin-bottom:1.5rem;">
+        <h3>CSV Format</h3>
+        <p>Required columns (header row must match exactly):</p>
+        <code>course, topic, subtopic, question_type, question, option_a, option_b, option_c, option_d, correct_answer, reason, level</code>
+        <br><br>
+        <strong>Rules:</strong>
+        <ul>
+            <li><code>question_type</code>: one of <code>theory</code>, <code>image</code>, <code>theory_image</code></li>
+            <li><code>correct_answer</code>: one of <code>A</code>, <code>B</code>, <code>C</code>, <code>D</code></li>
+            <li><code>level</code>: integer 1–5</li>
+            <li>Course/Topic/SubTopic are created automatically if they don't exist</li>
+            <li>Duplicate questions (same body + subtopic) are skipped</li>
+        </ul>
+        <a href="{{ sample_csv_url }}" download class="button">⬇ Download Sample CSV</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <label for="csv_file"><strong>Select CSV file:</strong></label><br><br>
+            <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+        </div>
+        <br>
+        <input type="submit" value="Upload and Import" class="default">
+        &nbsp;
+        <a href="../" class="button cancel-link">Cancel</a>
+    </form>
+</div>
+{% endblock %}

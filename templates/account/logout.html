@@ -1,0 +1,22 @@
+{% extends "account/base.html" %}
+
+{% block title %}Logout — MCQ Platform{% endblock %}
+
+{% block inner %}
+  <div class="auth-header">
+    <h1>Logout</h1>
+    <p>Are you sure you want to logout?</p>
+  </div>
+
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    <div class="auth-actions">
+      <button type="submit" class="btn-primary">Yes, logout</button>
+      <a class="btn-secondary" href="{% url 'home' %}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
+

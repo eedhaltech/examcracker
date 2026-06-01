@@ -1,0 +1,49 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Syllabuses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>All Syllabuses</h3>
+    <a href="{% url 'panel_syllabus_add' %}" class="btn-primary-sm">+ Add Syllabus</a>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Syllabus</th>
+        <th>Description</th>
+        <th>Courses</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in syllabuses %}
+      <tr>
+        <td>
+          <a href="{% url 'syllabus_courses' s.id %}" style="font-weight:600;">{{ s.name }}</a>
+        </td>
+        <td class="muted">{{ s.description|default:"—"|truncatechars:50 }}</td>
+        <td>
+          <span class="badge-yes">{{ s.course_count }} course{{ s.course_count|pluralize }}</span>
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <a href="{% url 'syllabus_courses' s.id %}" class="btn-sm">View Courses →</a>
+            <a href="{% url 'panel_syllabus_edit' s.id %}" class="btn-sm">Edit</a>
+            <form method="post" action="{% url 'panel_syllabus_delete' s.id %}" style="display:inline"
+                  data-confirm="Delete syllabus '{{ s.name }}'? Courses will not be deleted.">
+              {% csrf_token %}
+              <button class="btn-danger-sm">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="empty">No syllabuses yet. <a href="{% url 'panel_syllabus_add' %}">Add one →</a></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

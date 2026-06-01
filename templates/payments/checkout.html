@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout — Razorpay Payment{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="subscribe-header">
+    <h1>Complete Your Payment</h1>
+    <p>You are purchasing the <strong>{{ plan_label }}</strong> membership for <strong>₹{{ amount }}</strong>.</p>
+  </div>
+
+  <div class="panel-card" style="max-width:760px; margin: 0 auto;">
+    <div class="card-head">
+      <h3>Razorpay Checkout</h3>
+    </div>
+    <div class="panel-content">
+      <p>Amount: <strong>₹{{ amount }}</strong></p>
+      <p>Order ID: <strong>{{ order_id }}</strong></p>
+      <p>Webhook URL configured for Razorpay: <strong>{{ webhook_url }}</strong></p>
+
+      <button id="pay-button" class="btn-primary btn-full">Pay ₹{{ amount }} Now</button>
+      <a href="{% url 'payment_failure' %}" class="btn-outline" style="margin-left: 12px;">Cancel</a>
+    </div>
+  </div>
+
+  <form id="razorpay-form" method="post" action="{% url 'payment_success' %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id" />
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id" />
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature" />
+    <input type="hidden" name="plan" value="{{ plan_key }}" />
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const options = {
+    key: '{{ razorpay_key_id }}',
+    amount: {{ amount_paise }},
+    currency: 'INR',
+    name: 'MCQ Platform',
+    description: '{{ plan_label }} Membership',
+    image: '',
+    order_id: '{{ order_id }}',
+    handler: function(response) {
+      document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+      document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+      document.getElementById('razorpay_signature').value = response.razorpay_signature;
+      document.getElementById('razorpay-form').submit();
+    },
+    modal: {
+      ondismiss: function() {
+        window.location.href = '{% url "payment_failure" %}?reason=Checkout cancelled by customer&order_id={{ order_id }}';
+      }
+    },
+    prefill: {
+      email: '{{ user_email }}',
+    },
+    notes: {
+      plan: '{{ plan_key }}',
+    },
+    theme: {
+      color: '#2f54eb'
+    }
+  };
+
+  const rzp = new Razorpay(options);
+  rzp.on('payment.failed', function(response) {
+    const error = response.error || {};
+    const meta = error.metadata || {};
+    const reason = encodeURIComponent(error.description || error.reason || 'Payment failed.');
+    const orderId = encodeURIComponent(meta.order_id || '{{ order_id }}');
+    const paymentId = encodeURIComponent(meta.payment_id || '');
+    window.location.href = `{% url "payment_failure" %}?reason=${reason}&order_id=${orderId}&payment_id=${paymentId}`;
+  });
+
+  document.getElementById('pay-button').addEventListener('click', function(e) {
+    e.preventDefault();
+    rzp.open();
+  });
+})();
+</script>
+{% endblock %}

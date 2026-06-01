@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Limit Reached{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card limit-card">
+        <div class="limit-icon">⏰</div>
+        <h1>Daily Limit Reached</h1>
+        <p>You've used all <strong>5 free attempts</strong> for today.</p>
+        <p>Come back tomorrow, or upgrade to get <strong>unlimited access</strong>.</p>
+        <div class="limit-actions">
+            <a href="{% url 'subscribe' %}" class="btn-primary">View Plans — from ₹10</a>
+            <a href="{% url 'home' %}" class="btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

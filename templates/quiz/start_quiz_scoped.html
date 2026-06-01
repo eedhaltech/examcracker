@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Quiz — {{ scope_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="{% url 'home' %}">Home</a> ›
+    <span>{{ scope_name }}</span> ›
+    <span>{{ difficulty|title }} Quiz</span>
+  </nav>
+
+  <div class="start-quiz-card card" style="text-align:center;">
+    <h1>{{ scope_name }}</h1>
+    <p style="color:var(--text-muted);margin-bottom:1.25rem;">
+      {{ difficulty|title }} difficulty · {{ question_count }} question{{ question_count|pluralize }}
+    </p>
+
+    <div class="quiz-meta">
+      <span class="meta-item">📝 {{ question_count }} question{{ question_count|pluralize }}</span>
+      <span class="meta-item">🎯 Difficulty: <strong>{{ difficulty|title }}</strong></span>
+      {% if is_member %}
+        <span class="meta-item member-badge">⭐ Member — Unlimited</span>
+      {% else %}
+        <span class="meta-item">{{ attempt_count }}/{{ max_attempts }} attempts used today</span>
+      {% endif %}
+    </div>
+
+    {% if not allowed %}
+    <div class="alert alert-warning" style="margin:1rem 0;">
+      <strong>Daily limit reached.</strong> You've used all {{ max_attempts }} free attempts today.
+      Come back tomorrow or <a href="{% url 'subscribe' %}">upgrade for unlimited access</a>.
+    </div>
+    {% else %}
+    <form method="post" action="{% url 'start_quiz_scoped' %}?scope={{ scope }}&id={{ obj_id }}&difficulty={{ difficulty }}">
+      {% csrf_token %}
+      <input type="hidden" name="scope" value="{{ scope }}">
+      <input type="hidden" name="id" value="{{ obj_id }}">
+      <input type="hidden" name="difficulty" value="{{ difficulty }}">
+
+      <div class="quiz-options">
+        <label class="toggle-label">
+          <input type="checkbox" name="negative_marking" id="negative-marking">
+          <span>Enable negative marking <span style="color:var(--text-muted);font-size:.85em;">(−0.25 per wrong answer)</span></span>
+        </label>
+      </div>
+
+      <div style="margin-top:1.5rem;">
+        <button type="submit" class="btn-primary btn-lg">Start Quiz →</button>
+        <a href="{% url 'home' %}" class="btn-secondary btn-lg" style="margin-left:.75rem;">Cancel</a>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

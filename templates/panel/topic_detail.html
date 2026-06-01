@@ -1,0 +1,71 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ topic.name }} — Sub-topics{% endblock %}
+{% block page_title %}{{ topic.name }}{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="drill-breadcrumb">
+  <a href="{% url 'panel_courses' %}">Courses</a>
+  <span class="drill-bc-sep">›</span>
+  {% if topic.course.syllabus %}
+  <a href="{% url 'panel_courses' %}?syllabus={{ topic.course.syllabus_id }}">{{ topic.course.syllabus.name }}</a>
+  <span class="drill-bc-sep">›</span>
+  {% endif %}
+  <a href="{% url 'panel_course_detail' topic.course_id %}">{{ topic.course.name }}</a>
+  <span class="drill-bc-sep">›</span>
+  <span class="drill-bc-current">{{ topic.name }}</span>
+</div>
+
+<!-- Page header -->
+<div class="drill-page-header">
+  <div class="drill-page-icon">📂</div>
+  <div>
+    <h2 class="drill-page-title">{{ topic.name }}</h2>
+    <span class="drill-page-sub">{{ topic.course.name }}</span>
+  </div>
+  <div class="drill-page-actions">
+    <a href="{% url 'panel_subtopic_add' topic.id %}" class="panel-btn panel-btn--primary">＋ Add Sub-topic</a>
+  </div>
+</div>
+
+<!-- Sub-topics table -->
+{% if subtopics %}
+<div class="panel-card" style="padding:0;overflow:hidden;">
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Sub-topic Name</th>
+        <th>Questions</th>
+        <th>Order</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for st in subtopics %}
+      <tr>
+        <td><strong>{{ st.name }}</strong></td>
+        <td>
+          <span class="drill-q-badge">{{ st.q_count }} Q</span>
+        </td>
+        <td class="muted">{{ st.order }}</td>
+        <td>
+          <form method="post" action="{% url 'panel_subtopic_delete' st.id %}" style="display:inline"
+                data-confirm="Delete sub-topic '{{ st.name }}'?">
+            {% csrf_token %}
+            <button class="panel-btn panel-btn--sm panel-btn--danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="drill-empty">
+  No sub-topics yet.
+  <a href="{% url 'panel_subtopic_add' topic.id %}">Add the first sub-topic →</a>
+</div>
+{% endif %}
+
+{% endblock %}

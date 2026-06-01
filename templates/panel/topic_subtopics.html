@@ -1,0 +1,64 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ topic.name }} — Sub-topics{% endblock %}
+{% block page_title %}Sub-topics{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="panel-breadcrumb">
+  <a href="{% url 'panel_courses' %}">Syllabuses</a>
+  <span>›</span>
+  <a href="{% url 'syllabus_courses' syllabus.id %}">{{ syllabus.name }}</a>
+  <span>›</span>
+  <a href="{% url 'course_topics' syllabus.id course.id %}">{{ course.name }}</a>
+  <span>›</span>
+  <span>{{ topic.name }}</span>
+</div>
+
+<div class="panel-card">
+  <div class="card-head">
+    <h3>{{ topic.name }} — Sub-topics</h3>
+    <a href="{% url 'topic_subtopic_add' syllabus.id course.id topic.id %}" class="btn-primary-sm">+ Add Sub-topic</a>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Sub-topic</th>
+        <th>Questions</th>
+        <th>Order</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for st in subtopics %}
+      <tr>
+        <td style="font-weight:600;">{{ st.name }}</td>
+        <td>
+          {% if st.q_count > 0 %}
+          <span class="badge-yes">{{ st.q_count }} Q</span>
+          {% else %}
+          <span class="muted">0 Q</span>
+          {% endif %}
+        </td>
+        <td class="muted">{{ st.order }}</td>
+        <td>
+          <form method="post" action="{% url 'panel_subtopic_delete' st.id %}" style="display:inline"
+                data-confirm="Delete sub-topic '{{ st.name }}'?">
+            {% csrf_token %}
+            <button class="btn-danger-sm">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="empty">
+          No sub-topics in <strong>{{ topic.name }}</strong> yet.
+          <a href="{% url 'topic_subtopic_add' syllabus.id course.id topic.id %}">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

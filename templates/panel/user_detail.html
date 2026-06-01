@@ -1,0 +1,114 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}User — {{ u.email }}{% endblock %}
+{% block page_title %}User: {{ u.email }}{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+
+  <!-- Profile card -->
+  <div class="panel-card">
+    <div class="card-head"><h3>Profile</h3></div>
+    <div class="detail-row"><span>Email</span><strong>{{ u.email }}</strong></div>
+    <div class="detail-row"><span>Joined</span><strong>{{ u.date_joined|date:"d M Y, H:i" }}</strong></div>
+    <div class="detail-row"><span>Last login</span><strong>{{ u.last_login|date:"d M Y, H:i"|default:"Never" }}</strong></div>
+    <div class="detail-row"><span>Staff</span><strong>{% if u.is_staff %}Yes{% else %}No{% endif %}</strong></div>
+    <div class="detail-row"><span>Superuser</span><strong>{% if u.is_superuser %}Yes{% else %}No{% endif %}</strong></div>
+    <div class="detail-row">
+      <span>Membership</span>
+      <strong>
+        {% if profile.membership_active %}
+          <span class="badge-yes">⭐ Active until {{ profile.membership_expires }}</span>
+        {% else %}
+          <span class="badge-no">Free</span>
+        {% endif %}
+      </strong>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-group">
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="action" value="toggle_staff">
+        <button class="btn-outline">
+          {% if u.is_staff %}Remove Staff{% else %}Make Staff{% endif %}
+        </button>
+      </form>
+      <form method="post" data-confirm="Reset today's attempt count?">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reset_attempts">
+        <button class="btn-outline">Reset Daily Attempts</button>
+      </form>
+      {% if profile.membership_active %}
+      <form method="post" data-confirm="Revoke membership?">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="revoke_membership">
+        <button class="btn-danger-sm">Revoke Membership</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Grant membership -->
+  <div class="panel-card">
+    <div class="card-head"><h3>Grant Membership</h3></div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="activate_membership">
+      <div class="form-group">
+        <label>Plan</label>
+        <select name="plan" class="panel-select">
+          {% for key, label in plan_choices %}
+          <option value="{{ key }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary-sm">Activate Membership</button>
+    </form>
+  </div>
+
+</div>
+
+<!-- Subscription history -->
+<div class="panel-card">
+  <div class="card-head"><h3>Subscription History</h3></div>
+  <table class="panel-table">
+    <thead><tr><th>Plan</th><th>Start</th><th>End</th><th>Reference</th><th>Active</th></tr></thead>
+    <tbody>
+      {% for sub in subscriptions %}
+      <tr>
+        <td>{{ sub.get_plan_display }}</td>
+        <td>{{ sub.start_date }}</td>
+        <td>{{ sub.end_date }}</td>
+        <td>{{ sub.payment_reference|default:"—" }}</td>
+        <td>{% if sub.is_active %}<span class="badge-yes">Yes</span>{% else %}<span class="badge-no">No</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty">No subscriptions.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Recent attempts -->
+<div class="panel-card">
+  <div class="card-head"><h3>Recent Quiz Attempts</h3></div>
+  <table class="panel-table">
+    <thead><tr><th>Sub-topic</th><th>Score</th><th>Level</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for a in attempts %}
+      <tr>
+        <td>{{ a.subtopic.name }}</td>
+        <td>{{ a.score|floatformat:1 }} / {{ a.max_score }}</td>
+        <td>{{ a.level_at_attempt }}</td>
+        <td>{{ a.started_at|date:"d M Y, H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="empty">No attempts yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div style="margin-top:1rem;">
+  <a href="{% url 'panel_users' %}" class="btn-outline">← Back to Users</a>
+</div>
+{% endblock %}

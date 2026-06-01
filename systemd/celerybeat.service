@@ -1,0 +1,16 @@
+[Unit]
+Description=MCQ Platform Celery Beat Scheduler
+After=network.target redis.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/mcqplatform
+ExecStart=/var/www/mcqplatform/venv/bin/celery \
+          -A mcqplatform beat \
+          --loglevel=info
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

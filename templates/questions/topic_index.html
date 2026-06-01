@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ topic.name }} — {{ course.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav class="breadcrumb">
+        <a href="{% url 'home' %}">Home</a> &rsaquo;
+        <a href="{% url 'course_index' course.slug %}">{{ course.name }}</a> &rsaquo;
+        <span>{{ topic.name }}</span>
+    </nav>
+
+    <h1>{{ topic.name }}</h1>
+    <p class="subtitle">{{ subtopics.count }} sub-topics available</p>
+
+    <div class="subtopics-grid">
+        {% for subtopic in subtopics %}
+        <a href="{% url 'subtopic_index' course.slug topic.slug subtopic.slug %}" class="subtopic-card">
+            <h3>{{ subtopic.name }}</h3>
+            <span class="q-count">{{ subtopic.questions.count }} questions</span>
+        </a>
+        {% empty %}
+        <p class="empty-state">No sub-topics yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

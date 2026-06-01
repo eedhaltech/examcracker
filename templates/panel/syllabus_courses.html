@@ -1,0 +1,65 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}{{ syllabus.name }} — Courses{% endblock %}
+{% block page_title %}Courses{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="panel-breadcrumb">
+  <a href="{% url 'panel_courses' %}">Syllabuses</a>
+  <span>›</span>
+  <span>{{ syllabus.name }}</span>
+</div>
+
+<div class="panel-card">
+  <div class="card-head">
+    <h3>{{ syllabus.name }} — Courses</h3>
+    <a href="{% url 'syllabus_course_add' syllabus.id %}" class="btn-primary-sm">+ Add Course</a>
+  </div>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Topics</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for course in courses %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:.6rem;">
+            {% if course.icon %}
+              <img src="{{ course.icon.url }}" alt="" style="width:24px;height:24px;object-fit:contain;border-radius:4px;">
+            {% endif %}
+            <a href="{% url 'course_topics' syllabus.id course.id %}" style="font-weight:600;">{{ course.name }}</a>
+          </div>
+        </td>
+        <td>
+          <span class="badge-yes">{{ course.topic_count }} topic{{ course.topic_count|pluralize }}</span>
+        </td>
+        <td>
+          <div style="display:flex;gap:.4rem;align-items:center;">
+            <a href="{% url 'course_topics' syllabus.id course.id %}" class="btn-sm">View Topics →</a>
+            <a href="{% url 'panel_course_edit' syllabus.id course.id %}" class="btn-sm">Edit</a>
+            <form method="post" action="{% url 'panel_course_delete' syllabus.id course.id %}" style="display:inline"
+                  data-confirm="Delete course '{{ course.name }}' and ALL its questions?">
+              {% csrf_token %}
+              <button class="btn-danger-sm">Delete</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="3" class="empty">
+          No courses in <strong>{{ syllabus.name }}</strong> yet.
+          <a href="{% url 'syllabus_course_add' syllabus.id %}">Add one →</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
