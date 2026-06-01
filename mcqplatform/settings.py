@@ -93,7 +93,7 @@ CACHES = {
     }
 }
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_CACHE_ALIAS = 'default'
 
 AUTH_PASSWORD_VALIDATORS = [
