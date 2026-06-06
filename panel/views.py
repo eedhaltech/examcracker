@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.utils.text import slugify
 from django.core.paginator import Paginator
 
-from questions.models import Course, Topic, SubTopic, Question, Option, Syllabus
+from questions.models import Course, Topic, SubTopic, Question, Option, Syllabus, QuestionLevelTransition
 from questions.level_config import LevelConfig
 from questions.import_logic import import_questions_from_csv, import_simple_csv, import_section_csv
 from accounts.models import UserProfile, DailyAttemptLog
@@ -28,9 +28,17 @@ from payments.models import RazorpaySettings
 
 
 class RazorpaySettingsForm(forms.ModelForm):
+    razorpay_enabled = forms.BooleanField(
+        label='Enable Razorpay Payments',
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'style': 'width:auto; height:auto; display:inline-block; vertical-align:middle;',
+        }),
+        help_text='Uncheck this to bypass payments and allow instant subscription activation.',
+    )
     key_id = forms.CharField(
         label='Razorpay Key ID',
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'panel-input',
             'placeholder': 'rzp_test_xxxxxxxxxxxxx',
@@ -71,14 +79,15 @@ class RazorpaySettingsForm(forms.ModelForm):
 
     class Meta:
         model = RazorpaySettings
-        fields = ['key_id', 'key_secret', 'webhook_secret', 'webhook_url']
+        fields = ['razorpay_enabled', 'key_id', 'key_secret', 'webhook_secret', 'webhook_url']
 
     def clean_key_secret(self):
         key_secret = self.cleaned_data.get('key_secret')
         if key_secret in (None, '') and self.instance.pk and self.instance.key_secret:
             return self.instance.key_secret
-        if not key_secret:
-            raise forms.ValidationError('Razorpay Key Secret is required.')
+        # Only require if enabled
+        if self.cleaned_data.get('razorpay_enabled') and not key_secret:
+            raise forms.ValidationError('Razorpay Key Secret is required when enabled.')
         return key_secret
 
     def clean_webhook_secret(self):
@@ -89,8 +98,11 @@ class RazorpaySettingsForm(forms.ModelForm):
 
     def clean_key_id(self):
         key_id = self.cleaned_data.get('key_id', '').strip()
-        if not key_id.startswith('rzp_'):
-            raise forms.ValidationError('Enter a valid Razorpay Key ID, for example rzp_test_xxxxxxxxxxxxx.')
+        if self.cleaned_data.get('razorpay_enabled'):
+            if not key_id:
+                raise forms.ValidationError('Razorpay Key ID is required when enabled.')
+            if not key_id.startswith('rzp_'):
+                raise forms.ValidationError('Enter a valid Razorpay Key ID, for example rzp_test_xxxxxxxxxxxxx.')
         return key_id
 
 
@@ -120,6 +132,36 @@ def razorpay_settings(request):
         'form': form,
         'section': 'razorpay',
         'page_title': 'Razorpay Settings',
+    })
+
+
+@staff_required
+def question_transitions(request):
+    """View to show the history of question level and difficulty transitions."""
+    syllabus_id = request.GET.get('syllabus')
+    course_id = request.GET.get('course')
+    
+    qs = QuestionLevelTransition.objects.all().order_by('-created_at')
+    
+    if syllabus_id:
+        qs = qs.filter(question__subtopic__topic__course__syllabus_id=syllabus_id)
+    if course_id:
+        qs = qs.filter(question__subtopic__topic__course_id=course_id)
+        
+    paginator = Paginator(qs, 30)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+    
+    syllabuses = Syllabus.objects.all().order_by('name')
+    courses = Course.objects.all().order_by('name')
+    
+    return render(request, 'panel/question_transitions.html', {
+        'page_obj': page_obj,
+        'syllabuses': syllabuses,
+        'courses': courses,
+        'selected_syllabus': syllabus_id,
+        'selected_course': course_id,
+        'section': 'questions',
+        'page_title': 'Question Transitions',
     })
 
 
@@ -402,8 +444,6 @@ def csv_import(request):
             return redirect('panel_csv_import')
 
         try:
-            content = f.read().decode('utf-8')
-
             if fmt == 'simple':
                 subtopic_id = request.POST.get('subtopic_id')
                 level = int(request.POST.get('level', 1))
@@ -412,7 +452,7 @@ def csv_import(request):
                     messages.error(request, 'Please select a sub-topic for simple import.')
                     return redirect('panel_csv_import')
                 result = import_simple_csv(
-                    io.StringIO(content),
+                    f,
                     subtopic_id=subtopic_id,
                     level=level,
                     difficulty=difficulty,
@@ -426,14 +466,14 @@ def csv_import(request):
                     messages.error(request, 'Please select a topic for section import.')
                     return redirect('panel_csv_import')
                 result = import_section_csv(
-                    io.StringIO(content),
+                    f,
                     topic_id=topic_id,
                     level=level,
                     difficulty=difficulty,
                     created_by=request.user,
                 )
             else:
-                result = import_questions_from_csv(io.StringIO(content), created_by=request.user)
+                result = import_questions_from_csv(f, created_by=request.user)
 
             messages.success(request,
                 f"Done: {result['inserted']} inserted, "

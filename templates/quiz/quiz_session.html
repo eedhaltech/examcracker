@@ -67,29 +67,42 @@
           <div class="question-header">
             <span class="q-number">Q.{{ page_obj.start_index|add:forloop.counter0 }}</span>
             <span class="q-correct-pct" title="{{ question.total_attempted }} total attempts">
-              {{ question.percent_correct }}% correct
+              {{ question.percent_correct }} correct
             </span>
           </div>
 
           <div class="question-body">
             <p>{{ question.body }}</p>
+            {% if question.formula %}
+            <div class="question-formula" style="margin: 1rem 0; font-size: 1.2em; text-align: center; background: #f8fafc; padding: 1rem; border-radius: 8px;">
+              {{ question.formula }}
+            </div>
+            {% endif %}
+            {% if question.latex_formula %}
+            <div class="question-latex" style="margin: 1rem 0; font-size: 1.1em; text-align: center;">
+              $${{ question.latex_formula }}$$
+            </div>
+            {% endif %}
             {% if question.image %}
             <img src="{{ question.image.url }}" alt="Question image" class="question-img">
+            {% endif %}
+            {% if question.image_url_extra %}
+            <img src="{{ question.image_url_extra }}" alt="External image" class="question-img">
             {% endif %}
           </div>
 
           <div class="options-list">
-            {% for option in question.options.all %}
+            {% for option in question.shuffled_options %}
             <label class="option-label {% if answered|get_item:question.id == option.id %}selected{% endif %}"
                    id="opt-{{ question.id }}-{{ option.id }}">
               <input type="radio"
                      name="question_{{ question.id }}"
                      value="{{ option.id }}"
                      {% if answered|get_item:question.id == option.id %}checked{% endif %}>
-              <span class="option-key">{{ option.label }}</span>
+              <span class="option-key">{{ forloop.counter0|to_char }}</span>
               <span class="option-text">{{ option.text }}</span>
               {% if option.image %}
-              <img src="{{ option.image.url }}" alt="Option {{ option.label }}" class="option-img">
+              <img src="{{ option.image.url }}" alt="Option" class="option-img">
               {% endif %}
             </label>
             {% endfor %}
@@ -181,22 +194,41 @@ const timerInterval = setInterval(() => {
 {% endif %}
 
 <script>
-// Highlight selected option + update navigator pill
+// Highlight selected option + update navigator pill + AJAX save
 document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
   radio.addEventListener('change', function() {
     const name = this.name;
     const qId  = name.replace('question_', '');
+    const optId = this.value;
+
     document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
       r.closest('.option-label').classList.remove('selected');
     });
     this.closest('.option-label').classList.add('selected');
     const pill = document.getElementById('pill-' + qId);
     if (pill) pill.classList.add('answered');
-    // Update answered count
-    const total = {{ total_questions }};
-    const count = document.querySelectorAll('input[type="radio"]:checked').length;
-    const el = document.getElementById('answered-count');
-    if (el) el.textContent = count;
+
+    // AJAX Save
+    const formData = new FormData();
+    formData.append('question_id', qId);
+    formData.append('option_id', optId);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch('{% url "save_answer" attempt.id %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const el = document.getElementById('answered-count');
+        if (el) el.textContent = data.answered_count;
+      }
+    })
+    .catch(err => console.error('Error saving answer:', err));
   });
 });
 

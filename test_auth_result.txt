@@ -1,0 +1,377 @@
+
+================================================================================
+CURRENT DJANGO SETTINGS
+================================================================================
+SESSION_ENGINE: 'django.contrib.sessions.backends.db'
+CACHES: {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+LOGIN_REDIRECT_URL: '/'
+ACCOUNT_LOGIN_METHODS: {'email'}
+ACCOUNT_EMAIL_VERIFICATION: 'none'
+CSRF_TRUSTED_ORIGINS: []
+ALLOWED_HOSTS: ['*']
+
+================================================================================
+CREATE OR UPDATE TEST USER
+================================================================================
+Test user already exists (user id=12)
+
+================================================================================
+VERIFY auth_user TABLE
+================================================================================
+auth_user rows matching rendertest@example.com: 1
+
+================================================================================
+VERIFY USERPROFILE
+================================================================================
+UserProfile accessible via user.profile
+
+================================================================================
+AUTHENTICATE USER
+================================================================================
+Authenticated user id=12, email=rendertest@example.com
+
+================================================================================
+SESSION ENGINE TEST
+================================================================================
+SESSION_ENGINE module: django.contrib.sessions.backends.db
+Session key created: vto3exhk08d2ck552itm0yex0d3tuo70
+Restored session value: 'ok'
+
+================================================================================
+SIMULATE DJANGO-ALLAUTH LOGIN FLOW
+================================================================================
+request.user.is_authenticated after login: True
+
+================================================================================
+SEARCH PROJECT PATTERNS
+================================================================================
+logout(: COMPREHENSIVE_LOGIN_ANALYSIS.txt:41: 4. logout( FUNCTION
+SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:402: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: COMPREHENSIVE_LOGIN_ANALYSIS.txt:403: SESSION_CACHE_ALIAS = 'default'
+django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:408: 'BACKEND': 'django_redis.cache.RedisCache',
+redis://: COMPREHENSIVE_LOGIN_ANALYSIS.txt:409: 'LOCATION': 'redis://127.0.0.1:6379/1',
+django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:414: - Sessions stored in Redis via django_redis
+django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:416: - Redis connection fails silently (try/except in django_redis)
+SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:431: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:445: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: COMPREHENSIVE_LOGIN_ANALYSIS.txt:446: SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:449: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:469: Fix required: Change SESSION_ENGINE to database-backed
+SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:35: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:42: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: LOGIN_ANALYSIS_CURRENT.txt:43: SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:46: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: test_auth.py:55: 'SESSION_ENGINE',
+SESSION_ENGINE: test_auth.py:141: print(f"SESSION_ENGINE module: {settings.SESSION_ENGINE}")
+SESSION_ENGINE: test_auth.py:143: session_module = importlib.import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth.py:181: module = importlib.import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth.py:201: 'SESSION_ENGINE',
+django_redis: test_auth.py:202: 'django_redis',
+redis://: test_auth.py:203: 'redis://',
+SESSION_CACHE_ALIAS: test_auth.py:204: 'SESSION_CACHE_ALIAS',
+request.session.flush: test_auth.py:205: 'request.session.flush',
+request.session.clear: test_auth.py:206: 'request.session.clear',
+logout(: test_auth.py:207: 'logout(',
+SESSION_ENGINE: test_auth_result.txt:6: SESSION_ENGINE: 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: test_auth_result.txt:38: SESSION_ENGINE module: django.contrib.sessions.backends.db
+logout(: test_auth_result.txt:50: logout(: COMPREHENSIVE_LOGIN_ANALYSIS.txt:41: 4. logout( FUNCTION
+SESSION_ENGINE: test_auth_result.txt:51: SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:402: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: test_auth_result.txt:52: SESSION_CACHE_ALIAS: COMPREHENSIVE_LOGIN_ANALYSIS.txt:403: SESSION_CACHE_ALIAS = 'default'
+django_redis: test_auth_result.txt:53: django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:408: 'BACKEND': 'django_redis.cache.RedisCache',
+redis://: test_auth_result.txt:54: redis://: COMPREHENSIVE_LOGIN_ANALYSIS.txt:409: 'LOCATION': 'redis://127.0.0.1:6379/1',
+django_redis: test_auth_result.txt:55: django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:414: - Sessions stored in Redis via django_redis
+django_redis: test_auth_result.txt:56: django_redis: COMPREHENSIVE_LOGIN_ANALYSIS.txt:416: - Redis connection fails silently (try/except in django_redis)
+SESSION_ENGINE: test_auth_result.txt:57: SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:431: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: test_auth_result.txt:58: SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:445: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: test_auth_result.txt:59: SESSION_CACHE_ALIAS: COMPREHENSIVE_LOGIN_ANALYSIS.txt:446: SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE: test_auth_result.txt:60: SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:449: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: test_auth_result.txt:61: SESSION_ENGINE: COMPREHENSIVE_LOGIN_ANALYSIS.txt:469: Fix required: Change SESSION_ENGINE to database-backed
+SESSION_ENGINE: test_auth_result.txt:62: SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:35: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_ENGINE: test_auth_result.txt:63: SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:42: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: test_auth_result.txt:64: SESSION_CACHE_ALIAS: LOGIN_ANALYSIS_CURRENT.txt:43: SESSION_CACHE_ALIAS = 'default'
+SESSION_ENGINE: test_auth_result.txt:65: SESSION_ENGINE: LOGIN_ANALYSIS_CURRENT.txt:46: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE: test_auth_result.txt:66: SESSION_ENGINE: test_auth.py:55: 'SESSION_ENGINE',
+SESSION_ENGINE: test_auth_result.txt:67: SESSION_ENGINE: test_auth.py:141: print(f"SESSION_ENGINE module: {settings.SESSION_ENGINE}")
+SESSION_ENGINE: test_auth_result.txt:68: SESSION_ENGINE: test_auth.py:143: session_module = importlib.import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:69: SESSION_ENGINE: test_auth.py:181: module = importlib.import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:70: SESSION_ENGINE: test_auth.py:201: 'SESSION_ENGINE',
+django_redis: test_auth_result.txt:71: django_redis: test_auth.py:202: 'django_redis',
+redis://: test_auth_result.txt:72: redis://: test_auth.py:203: 'redis://',
+SESSION_CACHE_ALIAS: test_auth_result.txt:73: SESSION_CACHE_ALIAS: test_auth.py:204: 'SESSION_CACHE_ALIAS',
+request.session.flush: test_auth_result.txt:74: request.session.flush: test_auth.py:205: 'request.session.flush',
+request.session.clear: test_auth_result.txt:75: request.session.clear: test_auth.py:206: 'request.session.clear',
+logout(: test_auth_result.txt:76: logout(: test_auth.py:207: 'logout(',
+django_redis: test_auth_result.txt:77: django_redis: mcqplatform\settings.py:88: 'BACKEND': 'django_redis.cache.RedisCache',
+redis://: test_auth_result.txt:78: redis://: mcqplatform\settings.py:89: 'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+django_redis: test_auth_result.txt:79: django_redis: mcqplatform\settings.py:91: 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+SESSION_ENGINE: test_auth_result.txt:80: SESSION_ENGINE: mcqplatform\settings.py:96: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: test_auth_result.txt:81: SESSION_CACHE_ALIAS: mcqplatform\settings.py:97: SESSION_CACHE_ALIAS = 'default'
+redis://: test_auth_result.txt:82: redis://: mcqplatform\settings.py:160: CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+redis://: test_auth_result.txt:83: redis://: mcqplatform\settings.py:161: CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+SESSION_ENGINE: test_auth_result.txt:84: SESSION_ENGINE: mcqplatform\settings_dev.py:96: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+django_redis: test_auth_result.txt:85: django_redis: venv\Lib\site-packages\django_redis\cache.py:10: from django_redis.exceptions import ConnectionInterrupted
+django_redis: test_auth_result.txt:86: django_redis: venv\Lib\site-packages\django_redis\cache.py:52: "CLIENT_CLASS", "django_redis.client.DefaultClient"
+django_redis: test_auth_result.txt:87: django_redis: venv\Lib\site-packages\django_redis\pool.py:193: "django_redis.pool.ConnectionFactory",
+django_redis: test_auth_result.txt:88: django_redis: venv\Lib\site-packages\django_redis-6.0.0.dist-info\top_level.txt:1: django_redis
+redis://: test_auth_result.txt:89: redis://: venv\Lib\site-packages\kombu\connection.py:71: >>> Connection('redis://', transport_options={
+redis://: test_auth_result.txt:90: redis://: venv\Lib\site-packages\redis\client.py:108: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:91: redis://: venv\Lib\site-packages\redis\client.py:114: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:92: redis://: venv\Lib\site-packages\redis\client.py:127: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: test_auth_result.txt:93: redis://: venv\Lib\site-packages\redis\client.py:128: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: test_auth_result.txt:94: redis://: venv\Lib\site-packages\redis\client.py:129: of the url, e.g. redis://localhost/0
+redis://: test_auth_result.txt:95: redis://: venv\Lib\site-packages\redis\cluster.py:453: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:96: redis://: venv\Lib\site-packages\redis\cluster.py:459: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:97: redis://: venv\Lib\site-packages\redis\cluster.py:472: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: test_auth_result.txt:98: redis://: venv\Lib\site-packages\redis\cluster.py:473: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: test_auth_result.txt:99: redis://: venv\Lib\site-packages\redis\cluster.py:474: of the url, e.g. redis://localhost/0
+redis://: test_auth_result.txt:100: redis://: venv\Lib\site-packages\redis\connection.py:849: url.startswith("redis://")
+redis://: test_auth_result.txt:101: redis://: venv\Lib\site-packages\redis\connection.py:855: "schemes (redis://, rediss://, unix://)"
+redis://: test_auth_result.txt:102: redis://: venv\Lib\site-packages\redis\connection.py:878: # We only support redis://, rediss:// and unix:// schemes.
+redis://: test_auth_result.txt:103: redis://: venv\Lib\site-packages\redis\connection.py:925: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:104: redis://: venv\Lib\site-packages\redis\connection.py:931: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:105: redis://: venv\Lib\site-packages\redis\connection.py:944: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: test_auth_result.txt:106: redis://: venv\Lib\site-packages\redis\connection.py:945: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: test_auth_result.txt:107: redis://: venv\Lib\site-packages\redis\connection.py:946: of the url, e.g. redis://localhost/0
+redis://: test_auth_result.txt:108: redis://: venv\Lib\site-packages\redis\asyncio\client.py:126: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:109: redis://: venv\Lib\site-packages\redis\asyncio\client.py:132: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:110: redis://: venv\Lib\site-packages\redis\asyncio\client.py:145: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: test_auth_result.txt:111: redis://: venv\Lib\site-packages\redis\asyncio\client.py:147: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: test_auth_result.txt:112: redis://: venv\Lib\site-packages\redis\asyncio\client.py:148: of the url, e.g. redis://localhost/0
+redis://: test_auth_result.txt:113: redis://: venv\Lib\site-packages\redis\asyncio\cluster.py:184: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:114: redis://: venv\Lib\site-packages\redis\asyncio\cluster.py:189: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:115: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:915: # We only support redis://, rediss:// and unix:// schemes.
+redis://: test_auth_result.txt:116: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:938: valid_schemes = "redis://, rediss://, unix://"
+redis://: test_auth_result.txt:117: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:970: redis://[[username]:[password]]@localhost:6379/0
+redis://: test_auth_result.txt:118: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:976: - `redis://` creates a TCP socket connection. See more at:
+redis://: test_auth_result.txt:119: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:989: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: test_auth_result.txt:120: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:991: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: test_auth_result.txt:121: redis://: venv\Lib\site-packages\redis\asyncio\connection.py:992: of the url, e.g. redis://localhost/0
+redis://: test_auth_result.txt:122: redis://: venv\Lib\site-packages\kombu\transport\redis.py:18: redis://[USER:PASSWORD@]REDIS_ADDRESS[:PORT][/VIRTUALHOST]
+django_redis: test_auth_result.txt:123: django_redis: venv\Lib\site-packages\django_redis\client\default.py:25: from django_redis import pool
+django_redis: test_auth_result.txt:124: django_redis: venv\Lib\site-packages\django_redis\client\default.py:26: from django_redis.exceptions import CompressorError, ConnectionInterrupted
+django_redis: test_auth_result.txt:125: django_redis: venv\Lib\site-packages\django_redis\client\default.py:27: from django_redis.util import CacheKey
+django_redis: test_auth_result.txt:126: django_redis: venv\Lib\site-packages\django_redis\client\default.py:51: or "django_redis.util.default_reverse_key"
+django_redis: test_auth_result.txt:127: django_redis: venv\Lib\site-packages\django_redis\client\default.py:66: "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
+django_redis: test_auth_result.txt:128: django_redis: venv\Lib\site-packages\django_redis\client\default.py:71: "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+django_redis: test_auth_result.txt:129: django_redis: venv\Lib\site-packages\django_redis\client\default.py:86: "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+django_redis: test_auth_result.txt:130: django_redis: venv\Lib\site-packages\django_redis\client\default.py:88: != "django_redis.compressors.identity.IdentityCompressor"
+django_redis: test_auth_result.txt:131: django_redis: venv\Lib\site-packages\django_redis\client\herd.py:11: from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+django_redis: test_auth_result.txt:132: django_redis: venv\Lib\site-packages\django_redis\client\herd.py:12: from django_redis.exceptions import ConnectionInterrupted
+django_redis: test_auth_result.txt:133: django_redis: venv\Lib\site-packages\django_redis\client\sentinel.py:6: from django_redis.client.default import DefaultClient
+django_redis: test_auth_result.txt:134: django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:12: from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+django_redis: test_auth_result.txt:135: django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:13: from django_redis.exceptions import ConnectionInterrupted
+django_redis: test_auth_result.txt:136: django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:14: from django_redis.hash_ring import HashRing
+django_redis: test_auth_result.txt:137: django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:15: from django_redis.util import CacheKey
+django_redis: test_auth_result.txt:138: django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:1: from django_redis.client.default import DefaultClient
+django_redis: test_auth_result.txt:139: django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:2: from django_redis.client.herd import HerdClient
+django_redis: test_auth_result.txt:140: django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:3: from django_redis.client.sentinel import SentinelClient
+django_redis: test_auth_result.txt:141: django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:4: from django_redis.client.sharded import ShardClient
+django_redis: test_auth_result.txt:142: django_redis: venv\Lib\site-packages\django_redis\compressors\gzip.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:143: django_redis: venv\Lib\site-packages\django_redis\compressors\gzip.py:4: from django_redis.exceptions import CompressorError
+django_redis: test_auth_result.txt:144: django_redis: venv\Lib\site-packages\django_redis\compressors\identity.py:1: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:145: django_redis: venv\Lib\site-packages\django_redis\compressors\lz4.py:4: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:146: django_redis: venv\Lib\site-packages\django_redis\compressors\lz4.py:5: from django_redis.exceptions import CompressorError
+django_redis: test_auth_result.txt:147: django_redis: venv\Lib\site-packages\django_redis\compressors\lzma.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:148: django_redis: venv\Lib\site-packages\django_redis\compressors\lzma.py:4: from django_redis.exceptions import CompressorError
+django_redis: test_auth_result.txt:149: django_redis: venv\Lib\site-packages\django_redis\compressors\zlib.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:150: django_redis: venv\Lib\site-packages\django_redis\compressors\zlib.py:4: from django_redis.exceptions import CompressorError
+django_redis: test_auth_result.txt:151: django_redis: venv\Lib\site-packages\django_redis\compressors\zstd.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: test_auth_result.txt:152: django_redis: venv\Lib\site-packages\django_redis\compressors\zstd.py:4: from django_redis.exceptions import CompressorError
+django_redis: test_auth_result.txt:153: django_redis: venv\Lib\site-packages\django_redis\serializers\json.py:6: from django_redis.serializers.base import BaseSerializer
+django_redis: test_auth_result.txt:154: django_redis: venv\Lib\site-packages\django_redis\serializers\msgpack.py:5: from django_redis.serializers.base import BaseSerializer
+django_redis: test_auth_result.txt:155: django_redis: venv\Lib\site-packages\django_redis\serializers\pickle.py:6: from django_redis.serializers.base import BaseSerializer
+SESSION_CACHE_ALIAS: test_auth_result.txt:156: SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\conf\global_settings.py:487: SESSION_CACHE_ALIAS = "default"
+SESSION_ENGINE: test_auth_result.txt:157: SESSION_ENGINE: venv\Lib\site-packages\django\conf\global_settings.py:508: SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_ENGINE: test_auth_result.txt:158: SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:743: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:159: SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:789: engine = import_module(settings.SESSION_ENGINE)
+logout(: test_auth_result.txt:160: logout(: venv\Lib\site-packages\django\test\client.py:806: def logout(self):
+SESSION_ENGINE: test_auth_result.txt:161: SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:815: engine = import_module(settings.SESSION_ENGINE)
+logout(: test_auth_result.txt:162: logout(: venv\Lib\site-packages\django\test\client.py:817: logout(request)
+logout(: test_auth_result.txt:163: logout(: venv\Lib\site-packages\django\contrib\admin\sites.py:383: def logout(self, request, extra_context=None):
+logout(: test_auth_result.txt:164: logout(: venv\Lib\site-packages\django\contrib\auth\middleware.py:111: auth.logout(request)
+logout(: test_auth_result.txt:165: logout(: venv\Lib\site-packages\django\contrib\auth\middleware.py:114: auth.logout(request)
+logout(: test_auth_result.txt:166: logout(: venv\Lib\site-packages\django\contrib\auth\views.py:6: # Avoid shadowing the login() and logout() views below.
+logout(: test_auth_result.txt:167: logout(: venv\Lib\site-packages\django\contrib\auth\views.py:152: auth_logout(request)
+request.session.flush: test_auth_result.txt:168: request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:116: request.session.flush()
+logout(: test_auth_result.txt:169: logout(: venv\Lib\site-packages\django\contrib\auth\__init__.py:147: def logout(request):
+request.session.flush: test_auth_result.txt:170: request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:158: request.session.flush()
+request.session.flush: test_auth_result.txt:171: request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:220: request.session.flush()
+SESSION_ENGINE: test_auth_result.txt:172: SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\middleware.py:15: engine = import_module(settings.SESSION_ENGINE)
+SESSION_CACHE_ALIAS: test_auth_result.txt:173: SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\contrib\sessions\backends\cache.py:16: self._cache = caches[settings.SESSION_CACHE_ALIAS]
+SESSION_CACHE_ALIAS: test_auth_result.txt:174: SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\contrib\sessions\backends\cached_db.py:20: self._cache = caches[settings.SESSION_CACHE_ALIAS]
+SESSION_ENGINE: test_auth_result.txt:175: SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\management\commands\clearsessions.py:14: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:176: SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\management\commands\clearsessions.py:20: "sessions." % settings.SESSION_ENGINE
+redis://: test_auth_result.txt:177: redis://: venv\Lib\site-packages\celery\app\__init__.py:44: >>> app2 = Celery(broker='redis://')
+redis://: test_auth_result.txt:178: redis://: venv\Lib\site-packages\celery\backends\redis.py:62: is redis://. A Redis SSL connection URL should use the scheme rediss://.
+logout(: test_auth_result.txt:179: logout(: venv\Lib\site-packages\allauth\account\adapter.py:521: def logout(self, request):
+logout(: test_auth_result.txt:180: logout(: venv\Lib\site-packages\allauth\account\adapter.py:522: django_logout(request)
+logout(: test_auth_result.txt:181: logout(: venv\Lib\site-packages\allauth\account\mixins.py:66: def logout(self):
+logout(: test_auth_result.txt:182: logout(: venv\Lib\site-packages\allauth\account\mixins.py:67: flows.logout.logout(self.request)
+logout(: test_auth_result.txt:183: logout(: venv\Lib\site-packages\allauth\account\views.py:273: self.logout()
+logout(: test_auth_result.txt:184: logout(: venv\Lib\site-packages\allauth\account\views.py:647: self.logout()
+logout(: test_auth_result.txt:185: logout(: venv\Lib\site-packages\allauth\account\views.py:724: self.logout()
+SESSION_ENGINE: test_auth_result.txt:186: SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\sessions.py:8: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:187: SESSION_ENGINE: venv\Lib\site-packages\allauth\usersessions\models.py:101: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:188: SESSION_ENGINE: venv\Lib\site-packages\allauth\usersessions\models.py:126: engine = import_module(settings.SESSION_ENGINE)
+logout(: test_auth_result.txt:189: logout(: venv\Lib\site-packages\allauth\usersessions\internal\flows\sessions.py:19: flows.logout.logout(request)
+SESSION_ENGINE: test_auth_result.txt:190: SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\providers\apple\tests.py:258: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: test_auth_result.txt:191: SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\providers\google\tests.py:157: engine = import_module(settings.SESSION_ENGINE)
+logout(: test_auth_result.txt:192: logout(: venv\Lib\site-packages\allauth\socialaccount\providers\saml\views.py:152: def force_logout():
+logout(: test_auth_result.txt:193: logout(: venv\Lib\site-packages\allauth\socialaccount\providers\saml\views.py:153: account_adapter.logout(request)
+logout(: test_auth_result.txt:194: logout(: venv\Lib\site-packages\allauth\socialaccount\internal\flows\login.py:77: get_account_adapter(request).logout(request)
+logout(: test_auth_result.txt:195: logout(: venv\Lib\site-packages\allauth\headless\account\views.py:121: adapter.logout(request)
+SESSION_ENGINE: test_auth_result.txt:196: SESSION_ENGINE: venv\Lib\site-packages\allauth\headless\internal\sessionkit.py:10: engine = import_module(settings.SESSION_ENGINE)
+logout(: test_auth_result.txt:197: logout(: venv\Lib\site-packages\allauth\headless\account\tests\test_session.py:17: def test_logout(auth_client, headless_reverse):
+logout(: test_auth_result.txt:198: logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:161: client.logout()
+logout(: test_auth_result.txt:199: logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:200: client.logout()
+logout(: test_auth_result.txt:200: logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:257: client.logout()
+logout(: test_auth_result.txt:201: logout(: venv\Lib\site-packages\allauth\account\internal\flows\logout.py:7: def logout(request: HttpRequest) -> None:
+logout(: test_auth_result.txt:202: logout(: venv\Lib\site-packages\allauth\account\internal\flows\logout.py:15: adapter.logout(request)
+logout(: test_auth_result.txt:203: logout(: venv\Lib\site-packages\allauth\account\internal\flows\password_change.py:54: logout(request)
+django_redis: mcqplatform\settings.py:88: 'BACKEND': 'django_redis.cache.RedisCache',
+redis://: mcqplatform\settings.py:89: 'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+django_redis: mcqplatform\settings.py:91: 'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+SESSION_ENGINE: mcqplatform\settings.py:96: SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS: mcqplatform\settings.py:97: SESSION_CACHE_ALIAS = 'default'
+redis://: mcqplatform\settings.py:160: CELERY_BROKER_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+redis://: mcqplatform\settings.py:161: CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+SESSION_ENGINE: mcqplatform\settings_dev.py:96: SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+django_redis: venv\Lib\site-packages\django_redis\cache.py:10: from django_redis.exceptions import ConnectionInterrupted
+django_redis: venv\Lib\site-packages\django_redis\cache.py:52: "CLIENT_CLASS", "django_redis.client.DefaultClient"
+django_redis: venv\Lib\site-packages\django_redis\pool.py:193: "django_redis.pool.ConnectionFactory",
+django_redis: venv\Lib\site-packages\django_redis-6.0.0.dist-info\top_level.txt:1: django_redis
+redis://: venv\Lib\site-packages\kombu\connection.py:71: >>> Connection('redis://', transport_options={
+redis://: venv\Lib\site-packages\redis\client.py:108: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\client.py:114: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\client.py:127: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: venv\Lib\site-packages\redis\client.py:128: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: venv\Lib\site-packages\redis\client.py:129: of the url, e.g. redis://localhost/0
+redis://: venv\Lib\site-packages\redis\cluster.py:453: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\cluster.py:459: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\cluster.py:472: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: venv\Lib\site-packages\redis\cluster.py:473: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: venv\Lib\site-packages\redis\cluster.py:474: of the url, e.g. redis://localhost/0
+redis://: venv\Lib\site-packages\redis\connection.py:849: url.startswith("redis://")
+redis://: venv\Lib\site-packages\redis\connection.py:855: "schemes (redis://, rediss://, unix://)"
+redis://: venv\Lib\site-packages\redis\connection.py:878: # We only support redis://, rediss:// and unix:// schemes.
+redis://: venv\Lib\site-packages\redis\connection.py:925: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\connection.py:931: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\connection.py:944: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: venv\Lib\site-packages\redis\connection.py:945: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: venv\Lib\site-packages\redis\connection.py:946: of the url, e.g. redis://localhost/0
+redis://: venv\Lib\site-packages\redis\asyncio\client.py:126: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\asyncio\client.py:132: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\asyncio\client.py:145: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: venv\Lib\site-packages\redis\asyncio\client.py:147: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: venv\Lib\site-packages\redis\asyncio\client.py:148: of the url, e.g. redis://localhost/0
+redis://: venv\Lib\site-packages\redis\asyncio\cluster.py:184: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\asyncio\cluster.py:189: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:915: # We only support redis://, rediss:// and unix:// schemes.
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:938: valid_schemes = "redis://, rediss://, unix://"
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:970: redis://[[username]:[password]]@localhost:6379/0
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:976: - `redis://` creates a TCP socket connection. See more at:
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:989: 1. A ``db`` querystring option, e.g. redis://localhost?db=0
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:991: 2. If using the redis:// or rediss:// schemes, the path argument
+redis://: venv\Lib\site-packages\redis\asyncio\connection.py:992: of the url, e.g. redis://localhost/0
+redis://: venv\Lib\site-packages\kombu\transport\redis.py:18: redis://[USER:PASSWORD@]REDIS_ADDRESS[:PORT][/VIRTUALHOST]
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:25: from django_redis import pool
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:26: from django_redis.exceptions import CompressorError, ConnectionInterrupted
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:27: from django_redis.util import CacheKey
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:51: or "django_redis.util.default_reverse_key"
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:66: "SERIALIZER", "django_redis.serializers.pickle.PickleSerializer"
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:71: "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:86: "COMPRESSOR", "django_redis.compressors.identity.IdentityCompressor"
+django_redis: venv\Lib\site-packages\django_redis\client\default.py:88: != "django_redis.compressors.identity.IdentityCompressor"
+django_redis: venv\Lib\site-packages\django_redis\client\herd.py:11: from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+django_redis: venv\Lib\site-packages\django_redis\client\herd.py:12: from django_redis.exceptions import ConnectionInterrupted
+django_redis: venv\Lib\site-packages\django_redis\client\sentinel.py:6: from django_redis.client.default import DefaultClient
+django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:12: from django_redis.client.default import DEFAULT_TIMEOUT, DefaultClient
+django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:13: from django_redis.exceptions import ConnectionInterrupted
+django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:14: from django_redis.hash_ring import HashRing
+django_redis: venv\Lib\site-packages\django_redis\client\sharded.py:15: from django_redis.util import CacheKey
+django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:1: from django_redis.client.default import DefaultClient
+django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:2: from django_redis.client.herd import HerdClient
+django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:3: from django_redis.client.sentinel import SentinelClient
+django_redis: venv\Lib\site-packages\django_redis\client\__init__.py:4: from django_redis.client.sharded import ShardClient
+django_redis: venv\Lib\site-packages\django_redis\compressors\gzip.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\gzip.py:4: from django_redis.exceptions import CompressorError
+django_redis: venv\Lib\site-packages\django_redis\compressors\identity.py:1: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\lz4.py:4: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\lz4.py:5: from django_redis.exceptions import CompressorError
+django_redis: venv\Lib\site-packages\django_redis\compressors\lzma.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\lzma.py:4: from django_redis.exceptions import CompressorError
+django_redis: venv\Lib\site-packages\django_redis\compressors\zlib.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\zlib.py:4: from django_redis.exceptions import CompressorError
+django_redis: venv\Lib\site-packages\django_redis\compressors\zstd.py:3: from django_redis.compressors.base import BaseCompressor
+django_redis: venv\Lib\site-packages\django_redis\compressors\zstd.py:4: from django_redis.exceptions import CompressorError
+django_redis: venv\Lib\site-packages\django_redis\serializers\json.py:6: from django_redis.serializers.base import BaseSerializer
+django_redis: venv\Lib\site-packages\django_redis\serializers\msgpack.py:5: from django_redis.serializers.base import BaseSerializer
+django_redis: venv\Lib\site-packages\django_redis\serializers\pickle.py:6: from django_redis.serializers.base import BaseSerializer
+SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\conf\global_settings.py:487: SESSION_CACHE_ALIAS = "default"
+SESSION_ENGINE: venv\Lib\site-packages\django\conf\global_settings.py:508: SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:743: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:789: engine = import_module(settings.SESSION_ENGINE)
+logout(: venv\Lib\site-packages\django\test\client.py:806: def logout(self):
+SESSION_ENGINE: venv\Lib\site-packages\django\test\client.py:815: engine = import_module(settings.SESSION_ENGINE)
+logout(: venv\Lib\site-packages\django\test\client.py:817: logout(request)
+logout(: venv\Lib\site-packages\django\contrib\admin\sites.py:383: def logout(self, request, extra_context=None):
+logout(: venv\Lib\site-packages\django\contrib\auth\middleware.py:111: auth.logout(request)
+logout(: venv\Lib\site-packages\django\contrib\auth\middleware.py:114: auth.logout(request)
+logout(: venv\Lib\site-packages\django\contrib\auth\views.py:6: # Avoid shadowing the login() and logout() views below.
+logout(: venv\Lib\site-packages\django\contrib\auth\views.py:152: auth_logout(request)
+request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:116: request.session.flush()
+logout(: venv\Lib\site-packages\django\contrib\auth\__init__.py:147: def logout(request):
+request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:158: request.session.flush()
+request.session.flush: venv\Lib\site-packages\django\contrib\auth\__init__.py:220: request.session.flush()
+SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\middleware.py:15: engine = import_module(settings.SESSION_ENGINE)
+SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\contrib\sessions\backends\cache.py:16: self._cache = caches[settings.SESSION_CACHE_ALIAS]
+SESSION_CACHE_ALIAS: venv\Lib\site-packages\django\contrib\sessions\backends\cached_db.py:20: self._cache = caches[settings.SESSION_CACHE_ALIAS]
+SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\management\commands\clearsessions.py:14: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: venv\Lib\site-packages\django\contrib\sessions\management\commands\clearsessions.py:20: "sessions." % settings.SESSION_ENGINE
+redis://: venv\Lib\site-packages\celery\app\__init__.py:44: >>> app2 = Celery(broker='redis://')
+redis://: venv\Lib\site-packages\celery\backends\redis.py:62: is redis://. A Redis SSL connection URL should use the scheme rediss://.
+logout(: venv\Lib\site-packages\allauth\account\adapter.py:521: def logout(self, request):
+logout(: venv\Lib\site-packages\allauth\account\adapter.py:522: django_logout(request)
+logout(: venv\Lib\site-packages\allauth\account\mixins.py:66: def logout(self):
+logout(: venv\Lib\site-packages\allauth\account\mixins.py:67: flows.logout.logout(self.request)
+logout(: venv\Lib\site-packages\allauth\account\views.py:273: self.logout()
+logout(: venv\Lib\site-packages\allauth\account\views.py:647: self.logout()
+logout(: venv\Lib\site-packages\allauth\account\views.py:724: self.logout()
+SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\sessions.py:8: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: venv\Lib\site-packages\allauth\usersessions\models.py:101: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: venv\Lib\site-packages\allauth\usersessions\models.py:126: engine = import_module(settings.SESSION_ENGINE)
+logout(: venv\Lib\site-packages\allauth\usersessions\internal\flows\sessions.py:19: flows.logout.logout(request)
+SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\providers\apple\tests.py:258: engine = import_module(settings.SESSION_ENGINE)
+SESSION_ENGINE: venv\Lib\site-packages\allauth\socialaccount\providers\google\tests.py:157: engine = import_module(settings.SESSION_ENGINE)
+logout(: venv\Lib\site-packages\allauth\socialaccount\providers\saml\views.py:152: def force_logout():
+logout(: venv\Lib\site-packages\allauth\socialaccount\providers\saml\views.py:153: account_adapter.logout(request)
+logout(: venv\Lib\site-packages\allauth\socialaccount\internal\flows\login.py:77: get_account_adapter(request).logout(request)
+logout(: venv\Lib\site-packages\allauth\headless\account\views.py:121: adapter.logout(request)
+SESSION_ENGINE: venv\Lib\site-packages\allauth\headless\internal\sessionkit.py:10: engine = import_module(settings.SESSION_ENGINE)
+logout(: venv\Lib\site-packages\allauth\headless\account\tests\test_session.py:17: def test_logout(auth_client, headless_reverse):
+logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:161: client.logout()
+logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:200: client.logout()
+logout(: venv\Lib\site-packages\allauth\account\tests\test_email_verification.py:257: client.logout()
+logout(: venv\Lib\site-packages\allauth\account\internal\flows\logout.py:7: def logout(request: HttpRequest) -> None:
+logout(: venv\Lib\site-packages\allauth\account\internal\flows\logout.py:15: adapter.logout(request)
+logout(: venv\Lib\site-packages\allauth\account\internal\flows\password_change.py:54: logout(request)
+
+================================================================================
+STEP RESULTS
+================================================================================
+TEST USER CREATED OR UPDATED: PASS
+USER EXISTS IN auth_user: PASS
+USERPROFILE EXISTS: PASS
+AUTHENTICATE() WORKS: PASS
+SESSION KEY CREATED: PASS
+SESSION SAVED: PASS
+SESSION RESTORED: PASS
+DJANGO-ALLAUTH LOGIN SIMULATION: PASS
+PATTERN SEARCH COMPLETE: PASS
+
+================================================================================
+SUMMARY
+================================================================================
+AUTH WORKING = YES
+SESSION WORKING = YES
+REDIS DEPENDENCY FOUND = YES

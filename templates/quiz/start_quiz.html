@@ -2,8 +2,123 @@
 
 {% block title %}Start Quiz — {{ subtopic.name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+  .level-tile.level-faded {
+    opacity: 0.25;
+    pointer-events: none;
+    filter: grayscale(0.8);
+    transform: scale(0.95);
+  }
+  .level-tile.selectable {
+    cursor: pointer;
+  }
+  .level-tile.selectable:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+  .level-tile.level-locked {
+    position: relative;
+    border-style: dashed;
+    background: #f1f5f9;
+  }
+  .level-tile.level-locked::after {
+    content: "🔒";
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 16px;
+    background: #fff;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
+  .modal-card h2 { margin-bottom: 1rem; color: #1e293b; }
+  .modal-card p { margin-bottom: 1.5rem; color: #64748b; line-height: 1.6; }
+  .modal-features {
+    text-align: left;
+    margin-bottom: 2rem;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  .modal-features li {
+    list-style: none;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-features li::before { content: "✅"; }
+  .modal-actions { display: flex; gap: 1rem; justify-content: center; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
+  <!-- Subscription Modal -->
+  <div id="sub-modal" class="modal-overlay">
+    <div class="modal-card">
+      <h2>⭐ Unlock Premium Levels</h2>
+      <p>This level requires an active subscription. Please upgrade your plan to continue and access advanced questions.</p>
+      <div class="modal-features">
+        <li>Access all 5 levels (Beginner to Pro)</li>
+        <li>Unlimited quiz attempts</li>
+        <li>Advanced performance analytics</li>
+        <li>Ad-free experience</li>
+      </div>
+      <div class="modal-actions">
+        <button onclick="closeModal()" class="btn-outline">Maybe Later</button>
+        <a href="{% url 'subscribe' %}" class="btn-primary">Upgrade Now — ₹10</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Free Access Notice Modal -->
+  <div id="notice-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card" style="max-width: 500px; padding: 2.5rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">ℹ️</div>
+      <h2 id="notice-modal-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Limited Access</h2>
+      <p id="notice-modal-message" style="font-size: 1rem; color: #475569; margin-bottom: 2rem;">
+        You do not have an active subscription. Free users can access <strong>Easy levels only</strong>. 
+        Subscribe now to unlock Medium and Hard levels, advanced quizzes, and premium features.
+      </p>
+      <div class="modal-actions" style="flex-direction: column; gap: 0.75rem;">
+        <a href="{% url 'subscribe' %}" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          🚀 Subscribe Now
+        </a>
+        <button onclick="continueWithEasy()" class="btn-outline" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          Continue with Easy
+        </button>
+      </div>
+    </div>
+  </div>
+
   <nav class="breadcrumb">
     <a href="{% url 'home' %}">Home</a> ›
     <a href="{% url 'course_index' subtopic.topic.course.slug %}">{{ subtopic.topic.course.name }}</a> ›
@@ -24,11 +139,28 @@
       {% endif %}
     </div>
 
+    <!-- Difficulty Indicator -->
+    {% if selected_difficulty != 'all' %}
+    <div style="text-align:center; margin-bottom:1rem;">
+      <span style="font-size:0.85rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;">
+        Filter: {{ selected_difficulty }} Difficulty
+      </span>
+    </div>
+    {% endif %}
+
     <!-- Level access grid -->
     <div class="level-access-grid">
       {% for info in levels_info %}
-      <div class="level-tile {% if info.is_current %}level-current{% endif %} {% if not info.accessible %}level-locked{% endif %}">
-        <div class="level-num">L{{ info.level }}</div>
+      {% with lvl=info.level %}
+      <div class="level-tile 
+                  {% if info.is_current %}level-current{% endif %} 
+                  {% if not info.accessible %}level-locked{% endif %}
+                  {% if selected_difficulty == 'easy' and lvl > 2 %}level-faded
+                  {% elif selected_difficulty == 'medium' and lvl < 3 or selected_difficulty == 'medium' and lvl > 4 %}level-faded
+                  {% elif selected_difficulty == 'hard' and lvl < 5 %}level-faded{% endif %}
+                  selectable"
+           onclick="handleLevelClick({{ lvl }}, {{ info.accessible|yesno:'true,false' }}, this)">
+        <div class="level-num">L{{ lvl }}</div>
         {% if info.accessible %}
           {% if info.is_current %}
             <div class="level-badge badge-active">▶ Active</div>
@@ -39,6 +171,7 @@
           <div class="level-badge badge-locked">🔒 Members</div>
         {% endif %}
       </div>
+      {% endwith %}
       {% endfor %}
     </div>
 
@@ -59,6 +192,7 @@
 
     <form method="post" action="{% url 'start_quiz' subtopic.slug %}">
       {% csrf_token %}
+      <input type="hidden" name="target_level" id="target-level" value="{{ current_level }}">
 
       <div class="quiz-options">
         <label class="toggle-label">
@@ -81,4 +215,80 @@
     {% endif %}
   </div>
 </div>
+
+<script>
+function handleLevelClick(lvl, accessible, el) {
+  if (!accessible) {
+    showModal();
+    return;
+  }
+  selectLevel(lvl, el);
+}
+
+function selectLevel(lvl, el) {
+  // Update hidden input
+  document.getElementById('target-level').value = lvl;
+  
+  // Update visual selection
+  document.querySelectorAll('.level-tile').forEach(tile => {
+    tile.classList.remove('level-current');
+  });
+  el.classList.add('level-current');
+}
+
+function showModal() {
+  document.getElementById('sub-modal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('sub-modal').style.display = 'none';
+}
+
+function continueWithEasy() {
+  sessionStorage.setItem('quiz_notice_shown', 'true');
+  document.getElementById('notice-modal').style.display = 'none';
+  
+  // If user arrived with medium/hard difficulty, redirect to easy
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('difficulty') && urlParams.get('difficulty') !== 'easy' && urlParams.get('difficulty') !== 'all') {
+    urlParams.set('difficulty', 'easy');
+    window.location.search = urlParams.toString();
+  }
+}
+
+// Show notice modal on load for free users
+document.addEventListener('DOMContentLoaded', function() {
+  const isMember = {{ is_member|yesno:"true,false" }};
+  const noticeShown = sessionStorage.getItem('quiz_notice_shown');
+  const urlParams = new URLSearchParams(window.location.search);
+  const difficulty = (urlParams.get('difficulty') || 'all').toLowerCase();
+  const isPremiumDifficulty = (difficulty === 'medium' || difficulty === 'hard' || difficulty === 'all');
+  
+  if (!isMember) {
+    if (isPremiumDifficulty) {
+      // Always show for premium difficulty attempts by free users
+      document.getElementById('notice-modal-title').textContent = "Premium Feature";
+      document.getElementById('notice-modal-message').innerHTML = "This difficulty level (which includes Medium and Hard content) requires an active subscription. Free users can access <strong>Easy level only</strong>.";
+      document.getElementById('notice-modal').style.display = 'flex';
+    } else if (!noticeShown) {
+      // Show general notice once per session
+      document.getElementById('notice-modal').style.display = 'flex';
+    }
+  }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const subModal = document.getElementById('sub-modal');
+  const noticeModal = document.getElementById('notice-modal');
+  if (event.target == subModal) {
+    closeModal();
+  }
+  if (event.target == noticeModal) {
+    // Optional: don't allow closing notice modal by clicking outside
+    // to force a choice, but for UX we can allow it
+    // noticeModal.style.display = 'none';
+  }
+}
+</script>
 {% endblock %}

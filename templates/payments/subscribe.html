@@ -37,9 +37,13 @@
 
       <div>
         <a href="{{ plan.checkout_url }}" class="btn-primary btn-full">
-          Pay ₹{{ plan.price }}
+          {{ plan.button_text }}
         </a>
-        <p class="plan-note">Secure Razorpay checkout with instant membership activation.</p>
+        {% if razorpay_enabled %}
+          <p class="plan-note">Secure Razorpay checkout with instant membership activation.</p>
+        {% else %}
+          <p class="plan-note">Instant membership activation. No payment required.</p>
+        {% endif %}
       </div>
     </div>
     {% endfor %}

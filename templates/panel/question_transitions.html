@@ -1,0 +1,110 @@
+{% extends 'panel/base_panel.html' %}
+{% block title %}Question Transitions{% endblock %}
+{% block page_title %}Question Transitions Log{% endblock %}
+
+{% block content %}
+<div class="panel-card">
+  <div class="card-head">
+    <h3>Level & Difficulty Transitions</h3>
+    <p class="hint">History of automatic adjustments based on user performance.</p>
+  </div>
+
+  <form method="get" class="panel-filters" style="margin-bottom:1.5rem; display:flex; gap:10px; flex-wrap:wrap;">
+    <select name="syllabus" class="panel-select" onchange="this.form.submit()">
+      <option value="">All Syllabuses</option>
+      {% for s in syllabuses %}
+      <option value="{{ s.id }}" {% if selected_syllabus == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="course" class="panel-select" onchange="this.form.submit()">
+      <option value="">All Courses</option>
+      {% for c in courses %}
+      <option value="{{ c.id }}" {% if selected_course == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+
+    {% if selected_syllabus or selected_course %}
+    <a href="{% url 'panel_question_transitions' %}" class="btn-outline">Clear Filters</a>
+    {% endif %}
+  </form>
+
+  <table class="panel-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Question</th>
+        <th>Hierarchy (S/C/T/ST)</th>
+        <th>Level Change</th>
+        <th>Difficulty Change</th>
+        <th>Performance</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in page_obj %}
+      <tr>
+        <td style="white-space:nowrap; font-size:12px;">{{ log.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <a href="{% url 'panel_question_edit' log.question.id %}" title="{{ log.question.body }}">
+            Q{{ log.question.id }}: {{ log.question.body|truncatechars:50 }}
+          </a>
+        </td>
+        <td style="font-size:12px; color:#666;">
+          <div title="Syllabus">{{ log.syllabus_name }}</div>
+          <div title="Course" style="font-weight:600; color:#444;">{{ log.course_name }}</div>
+          <div title="Topic/SubTopic">{{ log.topic_name }} / {{ log.subtopic_name }}</div>
+        </td>
+        <td style="text-align:center;">
+          <span class="badge-level">L{{ log.old_level }}</span>
+          <span style="margin:0 4px;">→</span>
+          <span class="badge-level" style="background:#2f54eb; color:#fff;">L{{ log.new_level }}</span>
+        </td>
+        <td>
+          <span style="text-transform:capitalize;">{{ log.old_difficulty }}</span>
+          <span style="margin:0 4px;">→</span>
+          <span style="text-transform:capitalize; font-weight:bold; color:#d4380d;">{{ log.new_difficulty }}</span>
+        </td>
+        <td>
+          <div style="font-weight:bold;">{{ log.correct_pct_at_transition|floatformat:1 }}% Correct</div>
+          <div style="font-size:11px; color:#999;">(last 100 attempts)</div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="empty">No transitions logged yet. As users take quizzes, automatic level adjustments will appear here.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.has_other_pages %}
+  <div class="panel-pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page=1{% if selected_syllabus %}&syllabus={{ selected_syllabus }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}">« First</a>
+      <a href="?page={{ page_obj.previous_page_number }}{% if selected_syllabus %}&syllabus={{ selected_syllabus }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}">Previous</a>
+    {% endif %}
+
+    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if selected_syllabus %}&syllabus={{ selected_syllabus }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}">Next</a>
+      <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_syllabus %}&syllabus={{ selected_syllabus }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}">Last »</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .badge-level {
+    display:inline-block;
+    padding:2px 6px;
+    background:#f0f0f0;
+    border-radius:4px;
+    font-size:12px;
+    font-weight:bold;
+  }
+  .panel-filters select {
+    min-width:180px;
+  }
+</style>
+{% endblock %}

@@ -65,6 +65,9 @@ def _activate_subscription(subscription, payment_id='', signature=''):
 
 @login_required
 def subscribe(request):
+    settings_row = _get_razorpay_settings()
+    razorpay_enabled = settings_row.razorpay_enabled
+
     plans = [
         {
             'key': 'basic',
@@ -94,8 +97,15 @@ def subscribe(request):
     ]
     for plan in plans:
         plan['checkout_url'] = reverse('payment_checkout', args=[plan['key']])
+        if not razorpay_enabled:
+            plan['button_text'] = 'Activate Now'
+        else:
+            plan['button_text'] = f"Pay ₹{plan['price']}"
 
-    return render(request, 'payments/subscribe.html', {'plans': plans})
+    return render(request, 'payments/subscribe.html', {
+        'plans': plans,
+        'razorpay_enabled': razorpay_enabled,
+    })
 
 
 @login_required
@@ -104,6 +114,30 @@ def checkout(request, plan_key):
         return HttpResponseBadRequest('Invalid payment plan selected.')
 
     settings_row = _get_razorpay_settings()
+    
+    # If Razorpay is disabled, bypass payment and activate immediately
+    if not settings_row.razorpay_enabled:
+        start_date, end_date = _subscription_dates_for_user(request.user, plan_key)
+        subscription = Subscription.objects.create(
+            user=request.user,
+            plan=plan_key,
+            start_date=start_date,
+            end_date=end_date,
+            payment_reference='free-bypass',
+            amount=PLAN_PRICES[plan_key],
+            currency='INR',
+            payment_status='captured',
+            is_active=True,
+        )
+        _activate_subscription(subscription, payment_id='free-bypass')
+        messages.success(request, f'Your {plan_key} membership has been activated!')
+        return render(request, 'payments/success.html', {
+            'subscription': subscription,
+            'plan_label': dict(Subscription._meta.get_field('plan').choices).get(plan_key, plan_key),
+            'end_date': subscription.end_date,
+            'bypassed': True,
+        })
+
     if not settings_row.key_id or not settings_row.key_secret:
         messages.error(request, 'Razorpay is not configured. Please contact the admin.')
         return redirect('subscribe')

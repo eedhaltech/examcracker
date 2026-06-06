@@ -100,6 +100,10 @@ class MonetizationSettings(models.Model):
 
 class RazorpaySettings(models.Model):
     """Stored Razorpay configuration used by checkout and webhook handlers."""
+    razorpay_enabled = models.BooleanField(
+        default=True,
+        help_text="If disabled, users can subscribe directly without payment.",
+    )
     key_id = models.CharField(
         max_length=200,
         blank=True,

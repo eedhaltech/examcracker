@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load quiz_extras %}
 
 {% block title %}Results — {{ attempt.subtopic.name }}{% endblock %}
 
@@ -59,20 +60,35 @@
           {% elif answer.is_skipped %}⏭ Skipped
           {% else %}❌ Incorrect{% endif %}
         </span>
-        <span class="q-stat">{{ answer.question.percent_correct }}% of users got this right</span>
+        <span class="q-stat">
+          {{ answer.question.percent_correct }} of users got this right
+        </span>
       </div>
 
       <p class="q-body">{{ answer.question.body }}</p>
+      {% if answer.question.formula %}
+      <div class="question-formula" style="margin: 0.5rem 0; font-size: 1.1em; background: #f8fafc; padding: 0.75rem; border-radius: 6px;">
+        {{ answer.question.formula }}
+      </div>
+      {% endif %}
+      {% if answer.question.latex_formula %}
+      <div class="question-latex" style="margin: 0.5rem 0; font-size: 1em;">
+        $${{ answer.question.latex_formula }}$$
+      </div>
+      {% endif %}
       {% if answer.question.image %}
       <img src="{{ answer.question.image.url }}" alt="Question image" class="question-img" style="margin-bottom:.75rem;">
       {% endif %}
+      {% if answer.question.image_url_extra %}
+      <img src="{{ answer.question.image_url_extra }}" alt="External image" class="question-img" style="margin-bottom:.75rem;">
+      {% endif %}
 
       <div class="options-review">
-        {% for option in answer.question.options.all %}
+        {% for option in answer.question.shuffled_options %}
         <div class="option-review
           {% if option.is_correct %}option-correct{% endif %}
           {% if answer.selected_option == option and not option.is_correct %}option-wrong{% endif %}">
-          <span class="option-key">{{ option.label }}</span>
+          <span class="option-key">{{ forloop.counter0|to_char }}</span>
           <span class="option-text">{{ option.text }}</span>
           {% if option.is_correct %}
             <span class="badge-correct">✓ Correct answer</span>
@@ -81,7 +97,7 @@
             <span class="badge-wrong">✗ Your answer</span>
           {% endif %}
           {% if option.image %}
-          <img src="{{ option.image.url }}" alt="Option {{ option.label }}" class="option-img-sm">
+          <img src="{{ option.image.url }}" alt="Option" class="option-img-sm">
           {% endif %}
         </div>
         {% endfor %}

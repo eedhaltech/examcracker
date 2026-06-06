@@ -5,49 +5,95 @@ from django.utils import timezone
 @shared_task
 def update_question_stats(question_id):
     """Recalculate total_attempted and total_correct for a question after each attempt."""
-    from questions.models import Question
+    from questions.models import Question, QuestionLevelTransition
     from quiz.models import Answer
+    import logging
+    logger = logging.getLogger(__name__)
 
     try:
-        question = Question.objects.get(pk=question_id)
-        answers = Answer.objects.filter(question=question, attempt__is_complete=True)
+        question = Question.objects.select_related('subtopic__topic__course__syllabus').get(pk=question_id)
+        # Count only non-skipped answers in completed attempts
+        answers = Answer.objects.filter(question=question, attempt__is_complete=True, is_skipped=False)
+        
         question.total_attempted = answers.count()
         question.total_correct = answers.filter(is_correct=True).count()
 
         update_fields = ['total_attempted', 'total_correct']
+        
+        logger.info(f"Updating Q{question_id}: Attempted={question.total_attempted}, Correct={question.total_correct}")
+        old_level = question.level
+        old_difficulty = question.difficulty
 
-        # Auto-adjust question level (admin-uploaded questions only)
-        # Rule uses the latest 100 completed answers for this question:
+        # Auto-adjust difficulty (Easy, Medium, Hard) and Level (1-5)
+        # Based on the latest 100 completed answers for this question:
+        # Difficulty logic:
+        #   >80% WRONG (<=20% correct) -> Hard
+        #   >60% WRONG (<=40% correct) -> Medium
+        #   Others (<=60% wrong)       -> Easy
+        # Level logic (1-5):
         #   >=80% correct -> Level 1
         #   >=60% correct -> Level 2
         #   >=40% correct -> Level 3
         #   >=20% correct -> Level 4
         #   <20% correct  -> Level 5
         try:
-            if question.created_by and getattr(question.created_by, 'is_staff', False):
-                recent = list(
-                    Answer.objects.filter(question=question, attempt__is_complete=True)
-                    .order_by('-attempt__started_at')
-                    .values_list('is_correct', flat=True)[:100]
-                )
-                if len(recent) == 100:
-                    correct = sum(1 for x in recent if x)
-                    pct = (correct / 100) * 100
-                    if pct >= 80:
-                        new_level = 1
-                    elif pct >= 60:
-                        new_level = 2
-                    elif pct >= 40:
-                        new_level = 3
-                    elif pct >= 20:
-                        new_level = 4
-                    else:
-                        new_level = 5
-                    if question.level != new_level:
-                        question.level = new_level
-                        update_fields.append('level')
+            recent = list(
+                Answer.objects.filter(question=question, attempt__is_complete=True)
+                .order_by('-attempt__started_at')
+                .values_list('is_correct', flat=True)[:100]
+            )
+            if len(recent) == 100:
+                correct = sum(1 for x in recent if x)
+                wrong = 100 - correct
+                pct_correct = (correct / 100) * 100
+
+                # 1. Determine new Difficulty
+                if wrong > 80:
+                    new_difficulty = 'hard'
+                elif wrong > 60:
+                    new_difficulty = 'medium'
+                else:
+                    new_difficulty = 'easy'
+
+                # 2. Determine new Level
+                if pct_correct >= 80:
+                    new_level = 1
+                elif pct_correct >= 60:
+                    new_level = 2
+                elif pct_correct >= 40:
+                    new_level = 3
+                elif pct_correct >= 20:
+                    new_level = 4
+                else:
+                    new_level = 5
+
+                # Check if anything changed
+                if question.level != new_level or question.difficulty != new_difficulty:
+                    # Log the transition before updating the question object
+                    subtopic = question.subtopic
+                    topic = subtopic.topic
+                    course = topic.course
+                    syllabus = course.syllabus
+
+                    QuestionLevelTransition.objects.create(
+                        question=question,
+                        old_level=old_level,
+                        new_level=new_level,
+                        old_difficulty=old_difficulty,
+                        new_difficulty=new_difficulty,
+                        syllabus_name=syllabus.name if syllabus else "N/A",
+                        course_name=course.name,
+                        topic_name=topic.name,
+                        subtopic_name=subtopic.name,
+                        correct_pct_at_transition=pct_correct
+                    )
+
+                    question.level = new_level
+                    question.difficulty = new_difficulty
+                    if 'level' not in update_fields: update_fields.append('level')
+                    if 'difficulty' not in update_fields: update_fields.append('difficulty')
         except Exception:
-            # Never fail stats update because of auto-level logic
+            # Never fail stats update because of auto-adjust logic
             pass
 
         question.save(update_fields=update_fields)

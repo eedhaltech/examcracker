@@ -60,6 +60,9 @@ urlpatterns = [
     # Razorpay settings (staff)
     path('razorpay-settings/',            views.razorpay_settings, name='panel_razorpay_settings'),
 
+    # Question transitions log
+    path('question-transitions/',         views.question_transitions, name='panel_question_transitions'),
+
     # ── Level config ──
     path('levels/',                       views.level_config,     name='panel_level_config'),
 

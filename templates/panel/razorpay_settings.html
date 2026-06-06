@@ -4,13 +4,28 @@
 
 {% block content %}
 <div class="panel-card" style="max-width:760px;">
-  <div class="card-head"><h3>Razorpay Configuration</h3></div>
+  <div class="card-head">
+    <h3>Razorpay Configuration</h3>
+    {% if form.instance.razorpay_enabled %}
+      <span style="background:#e6fffa; color:#2c7a7b; padding:4px 8px; border-radius:4px; font-size:13px; font-weight:600;">Razorpay Enabled</span>
+    {% else %}
+      <span style="background:#fff5f5; color:#c53030; padding:4px 8px; border-radius:4px; font-size:13px; font-weight:600;">Razorpay Disabled</span>
+    {% endif %}
+  </div>
   <form method="post">
     {% csrf_token %}
     {% if form.non_field_errors %}
       <div class="pmsg pmsg-error">{{ form.non_field_errors }}</div>
     {% endif %}
     <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="form-group" style="background:#f9fafb; padding:15px; border-radius:8px; border:1px solid #edf2f7; margin-bottom:10px;">
+        <label for="{{ form.razorpay_enabled.id_for_label }}" style="display:flex; align-items:center; cursor:pointer; margin-bottom:0; font-weight:600;">
+          {{ form.razorpay_enabled }}
+          <span style="margin-left:10px;">Enable Razorpay Gateway</span>
+        </label>
+        {% if form.razorpay_enabled.help_text %}<p class="hint" style="margin-top:5px; margin-left:25px;">{{ form.razorpay_enabled.help_text }}</p>{% endif %}
+      </div>
+
       <div class="form-group">
         <label for="{{ form.key_id.id_for_label }}">Razorpay Key ID</label>
         {{ form.key_id }}

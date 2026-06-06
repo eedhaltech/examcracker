@@ -14,3 +14,12 @@ def get_item(dictionary, key):
 @register.filter
 def subtract(value, arg):
     return int(value) - int(arg)
+
+
+@register.filter
+def to_char(value):
+    """Converts 0 to A, 1 to B, etc."""
+    try:
+        return chr(65 + int(value))
+    except (ValueError, TypeError):
+        return ""

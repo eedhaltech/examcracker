@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse, Http404
 import random
 
 from questions.models import SubTopic, Question, Topic, Course
@@ -18,8 +19,21 @@ QUESTIONS_PER_PAGE = 10
 
 @login_required
 def start_quiz(request, subtopic_slug):
-    subtopic = get_object_or_404(SubTopic, slug=subtopic_slug)
+    # Use filter().first() instead of get_object_or_404 to avoid MultipleObjectsReturned
+    # since slugs are only unique within a topic, not globally.
+    subtopic = SubTopic.objects.filter(slug=subtopic_slug).first()
+    if not subtopic:
+        raise Http404("Subtopic not found")
+        
     is_member = request.is_member
+    selected_difficulty = request.GET.get('difficulty', 'all').lower()
+
+    # Backend enforcement: Free users can only access Easy on this page
+    # If they try to force Medium/Hard/All via URL, we don't strictly redirect here
+    # but the frontend popup will block them. For safety, we force 'easy'
+    # if they are not members and selected a premium difficulty.
+    if not is_member and selected_difficulty in ('medium', 'hard', 'all'):
+        selected_difficulty = 'easy'
 
     if request.method == 'POST':
         allowed, count = check_attempt_allowed(request.user)
@@ -36,6 +50,16 @@ def start_quiz(request, subtopic_slug):
 
         if not is_level_accessible(current_level, is_member):
             current_level = max_accessible_level(is_member)
+
+        # Allow overriding current level via target_level from POST
+        target_level = request.POST.get('target_level')
+        if target_level:
+            try:
+                target_level = int(target_level)
+                if is_level_accessible(target_level, is_member):
+                    current_level = target_level
+            except (ValueError, TypeError):
+                pass
 
         negative_marking = request.POST.get('negative_marking') == 'on'
         attempt = Attempt.objects.create(
@@ -56,6 +80,16 @@ def start_quiz(request, subtopic_slug):
 
     if not is_level_accessible(current_level, is_member):
         current_level = max_accessible_level(is_member)
+
+    # Automatically map difficulty to default level if not already at a higher level
+    # Easy (L1), Medium (L3), Hard (L5)
+    if selected_difficulty == 'medium':
+        if current_level < 3 and is_level_accessible(3, is_member):
+            current_level = 3
+    elif selected_difficulty == 'hard':
+        if current_level < 5 and is_level_accessible(5, is_member):
+            current_level = 5
+    # For 'easy' or 'all', we keep the current_level (usually L1 for new users)
 
     question_count = Question.objects.filter(subtopic=subtopic, level=current_level).count()
     # Apply limit for display
@@ -84,6 +118,7 @@ def start_quiz(request, subtopic_slug):
         'attempt_count': attempt_count,
         'max_attempts': 5,
         'levels_info': levels_info,
+        'selected_difficulty': selected_difficulty,
     })
 
 
@@ -117,6 +152,14 @@ def quiz_session(request, attempt_id):
     paginator = Paginator(questions, QUESTIONS_PER_PAGE)
     page_obj = paginator.get_page(page_num)
 
+    # Shuffle options for questions on the current page
+    for q in page_obj:
+        opts = list(q.options.all())
+        # Use attempt.id + q.id as seed for consistent shuffle within the same attempt
+        rng = random.Random(attempt.id + q.id)
+        rng.shuffle(opts)
+        q.shuffled_options = opts
+
     timer_seconds = len(questions) * 90
     level_preference = request.session.get('level_preference', 'flow')
     show_level_prompt = len(answered) == 20 and level_preference == 'flow'
@@ -137,56 +180,112 @@ def quiz_session(request, attempt_id):
 
 @login_required
 @require_POST
+def save_answer(request, attempt_id):
+    attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+    if attempt.is_complete:
+        return JsonResponse({'error': 'Attempt already completed'}, status=400)
+
+    question_id = request.POST.get('question_id')
+    option_id = request.POST.get('option_id')
+
+    if not question_id:
+        return JsonResponse({'error': 'Missing question_id'}, status=400)
+
+    question = get_object_or_404(Question, id=question_id)
+    selected_option = None
+    is_correct = False
+    is_skipped = True
+
+    if option_id:
+        try:
+            selected_option = question.options.get(id=int(option_id))
+            is_correct = bool(selected_option.is_correct)
+            is_skipped = False
+        except (Question.options.model.DoesNotExist, ValueError):
+            pass
+
+    Answer.objects.update_or_create(
+        attempt=attempt,
+        question=question,
+        defaults={
+            'selected_option': selected_option,
+            'is_correct': is_correct,
+            'is_skipped': is_skipped,
+        }
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'is_correct': is_correct,
+        'answered_count': attempt.answers.filter(is_skipped=False).count()
+    })
+
+
+@login_required
+@require_POST
 def submit_quiz(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
 
     if attempt.is_complete:
         return redirect('quiz_results', attempt_id=attempt.id)
 
-    questions = list(
+    # First, save any answers present in the current POST (the last page)
+    # This ensures that even if AJAX failed for the last page, the answers are captured.
+    questions_in_attempt = list(
         Question.objects.filter(
             subtopic=attempt.subtopic,
             level=attempt.level_at_attempt
         ).prefetch_related('options').order_by('order', 'id')
     )
-
-    # Apply same limit as quiz_session so scoring matches what was shown
     limit = get_max_questions(attempt.level_at_attempt)
     if limit and limit > 0:
-        questions = questions[:limit]
+        questions_in_attempt = questions_in_attempt[:limit]
+
+    for q in questions_in_attempt:
+        option_id = request.POST.get(f'question_{q.id}')
+        if option_id:
+            try:
+                selected_option = q.options.get(id=int(option_id))
+                Answer.objects.update_or_create(
+                    attempt=attempt,
+                    question=q,
+                    defaults={
+                        'selected_option': selected_option,
+                        'is_correct': bool(selected_option.is_correct),
+                        'is_skipped': False,
+                    }
+                )
+            except (Question.options.model.DoesNotExist, ValueError):
+                pass
+        # Note: We DON'T set is_skipped=True here if option_id is missing,
+        # because the question might have been answered in a previous batch (AJAX).
+        # We only mark it as skipped if it doesn't exist in Answer table at all yet.
+
+    # Now calculate the final score based on ALL answers for this attempt
+    all_answers = attempt.answers.all()
+    
+    # Ensure all questions that SHOULD have been in this attempt have an Answer record
+    # (even if it's a 'skipped' record)
+    existing_q_ids = set(all_answers.values_list('question_id', flat=True))
+    missing_answers = []
+    for q in questions_in_attempt:
+        if q.id not in existing_q_ids:
+            missing_answers.append(Answer(
+                attempt=attempt,
+                question=q,
+                is_skipped=True,
+                is_correct=False
+            ))
+    if missing_answers:
+        Answer.objects.bulk_create(missing_answers)
+        all_answers = attempt.answers.all() # Refresh
 
     score = 0.0
-    answer_objects = []
-
-    for question in questions:
-        selected_option_id = request.POST.get(f'question_{question.id}')
-        is_skipped = not selected_option_id
-        is_correct = False
-        selected_option = None
-
-        if not is_skipped:
-            try:
-                # Cast to int — POST values are strings
-                selected_option = question.options.get(id=int(selected_option_id))
-                is_correct = bool(selected_option.is_correct)
-                if is_correct:
-                    score += 1
-                elif attempt.negative_marking_enabled:
-                    score -= 0.25
-            except (Question.options.model.DoesNotExist, ValueError, TypeError):
-                is_skipped = True
-
-        answer_objects.append(Answer(
-            attempt=attempt,
-            question=question,
-            selected_option=selected_option,
-            is_correct=is_correct,
-            is_skipped=is_skipped,
-        ))
-
-    # Delete any partial answers from previous saves, then bulk create fresh
-    attempt.answers.all().delete()
-    Answer.objects.bulk_create(answer_objects)
+    for ans in all_answers:
+        if ans.is_correct:
+            score += 1
+        elif attempt.negative_marking_enabled and not ans.is_skipped:
+            score -= 0.25
 
     now = timezone.now()
     attempt.score = max(score, 0)
@@ -195,9 +294,11 @@ def submit_quiz(request, attempt_id):
     attempt.is_complete = True
     attempt.save()
 
-    # Async stats update
-    for q in questions:
-        update_question_stats.delay(q.id)
+    # Update stats for each question answered in this attempt
+    # We call it directly instead of .delay() to ensure immediate update across accounts
+    for ans in all_answers:
+        update_question_stats(ans.question_id)
+    
     update_user_level_task.delay(request.user.id, attempt.subtopic_id)
 
     return redirect('quiz_results', attempt_id=attempt.id)
@@ -213,6 +314,14 @@ def quiz_results(request, attempt_id):
     answers = attempt.answers.select_related(
         'question', 'question__subtopic', 'selected_option'
     ).prefetch_related('question__options').order_by('question__order', 'question__id')
+
+    for ans in answers:
+        q = ans.question
+        opts = list(q.options.all())
+        # Use same seed as in quiz_session for consistent shuffle
+        rng = random.Random(attempt.id + q.id)
+        rng.shuffle(opts)
+        q.shuffled_options = opts
 
     try:
         user_level = UserTopicLevel.objects.get(user=request.user, subtopic=attempt.subtopic)
@@ -266,6 +375,10 @@ def start_quiz_scoped(request):
     scope      = request.GET.get('scope') or request.POST.get('scope', 'topic')
     obj_id     = request.GET.get('id')    or request.POST.get('id')
     difficulty = (request.GET.get('difficulty') or request.POST.get('difficulty', 'all')).lower()
+
+    # Backend enforcement: Free users can only access Easy difficulty
+    if not request.is_member and difficulty in ('medium', 'hard', 'all'):
+        difficulty = 'easy'
 
     if difficulty not in ('easy', 'medium', 'hard', 'all'):
         difficulty = 'all'

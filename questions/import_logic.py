@@ -8,12 +8,64 @@ REQUIRED_COLUMNS = [
     'correct_answer', 'reason', 'level'
 ]
 
+# Optional columns for advanced math/science support
+ADVANCED_COLUMNS = [
+    'formula', 'symbol_type', 'latex_formula', 'image_url'
+]
+
 VALID_QUESTION_TYPES = {'theory', 'image', 'theory_image'}
 VALID_CORRECT_ANSWERS = {'A', 'B', 'C', 'D'}
+VALID_SYMBOL_TYPES = {'math', 'physics', 'chemistry', 'biology'}
+
+
+def _decode_csv_file(file_obj):
+    """
+    Robustly decodes a CSV file object into a string.
+    Tries UTF-8 first, then Latin-1, and finally ignores errors if needed.
+    Also detects if the file is actually an Excel (.xlsx) file.
+    """
+    try:
+        # Read the raw bytes
+        raw_data = file_obj.read()
+        
+        # Reset pointer for future reads
+        if hasattr(file_obj, 'seek'):
+            file_obj.seek(0)
+            
+        # Detect Excel/ZIP signature (PK\x03\x04)
+        if raw_data.startswith(b'PK\x03\x04'):
+            raise ValueError(
+                "This file appears to be an Excel (.xlsx) workbook, not a plain text CSV. "
+                "Please 'Save As' CSV (Comma Delimited) in Excel before uploading."
+            )
+            
+        # Handle cases where file_obj is already a string
+        if isinstance(raw_data, str):
+            return raw_data
+            
+        # Try UTF-8 first
+        try:
+            return raw_data.decode('utf-8')
+        except UnicodeDecodeError:
+            # Fallback to Latin-1 which covers 0x87 and other legacy bytes
+            try:
+                return raw_data.decode('latin-1')
+            except Exception:
+                # Last resort: decode with utf-8 but ignore problematic bytes
+                return raw_data.decode('utf-8', errors='ignore')
+                
+    except ValueError:
+        # Re-raise our custom validation error
+        raise
+    except Exception as e:
+        # If all else fails, return empty or try to stringify
+        return str(file_obj)
 
 
 def import_questions_from_csv(file_obj, created_by=None):
-    reader = csv.DictReader(file_obj)
+    import io
+    content = _decode_csv_file(file_obj)
+    reader = csv.DictReader(io.StringIO(content))
     inserted = 0
     skipped = 0
     errors = 0
@@ -21,8 +73,8 @@ def import_questions_from_csv(file_obj, created_by=None):
 
     for row_num, row in enumerate(reader, start=2):
         try:
-            # Strip whitespace from all values
-            row = {k.strip(): v.strip() for k, v in row.items() if k}
+            # Strip whitespace from all values and handle potential BOM
+            row = {k.strip().replace('\ufeff', ''): v.strip() for k, v in row.items() if k}
 
             # Validate required columns
             missing = [col for col in REQUIRED_COLUMNS if col not in row]
@@ -42,6 +94,13 @@ def import_questions_from_csv(file_obj, created_by=None):
             correct_answer = row['correct_answer'].upper()
             reason        = row['reason']
             level_str     = row['level']
+            difficulty    = row.get('difficulty', 'medium').lower()
+
+            # Advanced fields
+            formula       = row.get('formula', '')
+            symbol_type   = row.get('symbol_type', '').lower()
+            latex_formula = row.get('latex_formula', '')
+            image_url_ext = row.get('image_url', '')
 
             # Validate fields
             if not question_body:
@@ -50,6 +109,11 @@ def import_questions_from_csv(file_obj, created_by=None):
                 raise ValueError(f"Invalid question_type: {question_type}")
             if correct_answer not in VALID_CORRECT_ANSWERS:
                 raise ValueError(f"Invalid correct_answer: {correct_answer}")
+            
+            if symbol_type and symbol_type not in VALID_SYMBOL_TYPES:
+                # If invalid symbol type, just clear it instead of failing
+                symbol_type = ''
+
             try:
                 level = int(level_str)
                 if not (1 <= level <= 5):
@@ -107,6 +171,11 @@ def import_questions_from_csv(file_obj, created_by=None):
                 body=question_body,
                 explanation=reason,
                 level=level,
+                difficulty=difficulty,
+                formula=formula,
+                symbol_type=symbol_type,
+                latex_formula=latex_formula,
+                image_url_extra=image_url_ext
             )
 
             # Create Options
@@ -165,7 +234,9 @@ def import_simple_csv(file_obj, subtopic_id, level=1, difficulty='medium', creat
     from .models import SubTopic
 
     subtopic = SubTopic.objects.get(pk=subtopic_id)
-    reader = csv.DictReader(file_obj)
+    import io
+    content = _decode_csv_file(file_obj)
+    reader = csv.DictReader(io.StringIO(content))
     inserted = 0
     skipped = 0
     errors = 0
@@ -248,7 +319,9 @@ def import_section_csv(file_obj, topic_id, level=1, difficulty='medium', created
     from .models import Topic, SubTopic
 
     topic = Topic.objects.get(pk=topic_id)
-    reader = csv.DictReader(file_obj)
+    import io
+    content = _decode_csv_file(file_obj)
+    reader = csv.DictReader(io.StringIO(content))
     inserted = 0
     skipped = 0
     errors = 0

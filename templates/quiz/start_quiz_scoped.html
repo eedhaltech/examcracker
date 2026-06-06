@@ -2,8 +2,56 @@
 
 {% block title %}Start Quiz — {{ scope_name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
+  .modal-card h2 { margin-bottom: 1rem; color: #1e293b; font-size: 1.5rem; }
+  .modal-card p { margin-bottom: 2rem; color: #475569; line-height: 1.6; font-size: 1rem; }
+  .modal-actions { display: flex; flex-direction: column; gap: 0.75rem; justify-content: center; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
+  <!-- Free Access Notice Modal -->
+  <div id="notice-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">ℹ️</div>
+      <h2>Limited Access</h2>
+      <p>
+        You do not have an active subscription. Free users can access <strong>Easy levels only</strong>. 
+        Subscribe now to unlock Medium and Hard levels, advanced quizzes, and premium features.
+      </p>
+      <div class="modal-actions">
+        <a href="{% url 'subscribe' %}" class="btn-primary" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          🚀 Subscribe Now
+        </a>
+        <button onclick="continueWithEasy()" class="btn-outline" style="width: 100%; justify-content: center; padding: 0.85rem;">
+          Continue with Easy
+        </button>
+      </div>
+    </div>
+  </div>
+
   <nav class="breadcrumb">
     <a href="{% url 'home' %}">Home</a> ›
     <span>{{ scope_name }}</span> ›
@@ -53,4 +101,37 @@
     {% endif %}
   </div>
 </div>
+
+<script>
+function continueWithEasy() {
+  sessionStorage.setItem('quiz_notice_shown', 'true');
+  document.getElementById('notice-modal').style.display = 'none';
+  
+  // If user arrived with medium/hard difficulty, redirect to easy
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('difficulty') && urlParams.get('difficulty') !== 'easy' && urlParams.get('difficulty') !== 'all') {
+    urlParams.set('difficulty', 'easy');
+    window.location.search = urlParams.toString();
+  }
+}
+
+// Show notice modal on load for free users
+document.addEventListener('DOMContentLoaded', function() {
+  const isMember = {{ is_member|yesno:"true,false" }};
+  const noticeShown = sessionStorage.getItem('quiz_notice_shown');
+  
+  if (!isMember && !noticeShown) {
+    document.getElementById('notice-modal').style.display = 'flex';
+  }
+});
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('notice-modal');
+  if (event.target == modal) {
+    // Optional: allow closing notice modal by clicking outside
+    // modal.style.display = 'none';
+  }
+}
+</script>
 {% endblock %}

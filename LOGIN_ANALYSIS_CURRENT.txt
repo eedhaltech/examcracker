@@ -1,0 +1,49 @@
+LOGIN FLOW ANALYSIS
+==================
+
+WHAT BLOCKS LOGIN?
+Nothing blocks login at application level.
+
+NO BLOCKING MIDDLEWARE
+- MembershipMiddleware: Only gates features, not login
+- AdminUnifiedLoginMiddleware: Only blocks /admin/ for non-staff
+
+NO BLOCKING CODE
+- No custom login adapters
+- No custom authentication backends
+- No login/logout overrides
+- No email verification requirement
+- No membership check
+- No staff status requirement
+
+AUTHENTICATION CONFIGURATION
+- AUTHENTICATION_BACKENDS: ModelBackend + AuthenticationBackend (allauth)
+- ACCOUNT_LOGIN_METHODS: Email-only (no username required)
+- ACCOUNT_EMAIL_VERIFICATION: Optional
+- LOGIN_REDIRECT_URL: /
+
+LOGIN FLOW TESTED AND WORKS
+test999@example.com:
+✅ User created
+✅ Profile created
+✅ Password authenticated
+✅ Session created
+✅ 302 redirect to home
+✅ Logged in successfully
+
+PRODUCTION PROBLEM (RENDER)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+- Requires Redis
+- Render free tier has no Redis
+- Sessions fail silently
+
+SOLUTION
+Change settings.py line 96-97 from:
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+    SESSION_CACHE_ALIAS = 'default'
+
+To:
+    SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+This uses database for sessions instead of Redis.
+Works on Render without Redis dependency.

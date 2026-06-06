@@ -111,6 +111,17 @@ class Question(models.Model):
     total_attempted = models.PositiveIntegerField(default=0)
     total_correct = models.PositiveIntegerField(default=0)
 
+    # Advanced Science/Math Support
+    formula = models.TextField(blank=True, help_text="Mathematical or scientific formula.")
+    symbol_type = models.CharField(
+        max_length=50, 
+        blank=True, 
+        choices=[('math', 'Math'), ('physics', 'Physics'), ('chemistry', 'Chemistry'), ('biology', 'Biology')],
+        help_text="Category of symbols used."
+    )
+    latex_formula = models.TextField(blank=True, help_text="Optional LaTeX formatted formula.")
+    image_url_extra = models.URLField(blank=True, help_text="Optional external diagram/image URL.")
+
     class Meta:
         ordering = ['level', 'order', 'id']
 
@@ -120,8 +131,9 @@ class Question(models.Model):
     @property
     def percent_correct(self):
         if self.total_attempted == 0:
-            return 0
-        return round((self.total_correct / self.total_attempted) * 100, 1)
+            return "0.0%"
+        pct = (self.total_correct / self.total_attempted) * 100
+        return f"{round(pct, 1)}%"
 
 
 class Option(models.Model):
@@ -139,3 +151,29 @@ class Option(models.Model):
 
 # Import LevelConfig so it's part of this app's model registry
 from .level_config import LevelConfig  # noqa: F401
+
+
+class QuestionLevelTransition(models.Model):
+    """Logs whenever a question's level or difficulty is auto-adjusted."""
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='level_transitions')
+    
+    old_level = models.PositiveIntegerField()
+    new_level = models.PositiveIntegerField()
+    
+    old_difficulty = models.CharField(max_length=10)
+    new_difficulty = models.CharField(max_length=10)
+    
+    # Metadata for filtering
+    syllabus_name = models.CharField(max_length=200, blank=True)
+    course_name = models.CharField(max_length=200, blank=True)
+    topic_name = models.CharField(max_length=200, blank=True)
+    subtopic_name = models.CharField(max_length=200, blank=True)
+    
+    correct_pct_at_transition = models.FloatField(help_text="Correct % in the last 100 attempts")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Q{self.question_id}: L{self.old_level}→L{self.new_level} | {self.old_difficulty}→{self.new_difficulty}"
